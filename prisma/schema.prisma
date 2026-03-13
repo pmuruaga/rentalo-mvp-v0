@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                     String   @id @default(cuid())
+  name                   String
+  slug                   String   @unique
+  category               String
+  pricePerDay            Int
+  shortDescription       String
+  description            String
+  images                 String   // JSON array of URLs
+  whatsappMessageTemplate String
+  queIncluye             String?  // JSON array, optional
+  availableIn            String   @default("[]") // JSON array: ["Frías"], ["Todo el país"]
+  publishedBy            String   @default("")
+  whatsappNumber         String?  // Número del publicador; si vacío, usa el general de Rentalo
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
