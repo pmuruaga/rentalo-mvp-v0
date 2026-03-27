@@ -33,6 +33,12 @@ export async function GET(request: NextRequest) {
     availableIn: p.availableIn ? (JSON.parse(p.availableIn) as string[]) : [],
     publishedBy: p.publishedBy || undefined,
     whatsappNumber: p.whatsappNumber || undefined,
+    deliveryMethod: p.deliveryMethod || undefined,
+    condition: p.condition || undefined,
+    availabilityNotes: p.availabilityNotes || undefined,
+    requirements: p.requirements || undefined,
+    minimumRentalPeriod: p.minimumRentalPeriod || undefined,
+    importantInfo: p.importantInfo || undefined,
   }));
 
   return NextResponse.json(mapped);
@@ -43,6 +49,7 @@ export async function POST(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   const body = await request.json();
+  const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
   const product = await prisma.product.create({
     data: {
       name: body.name,
@@ -51,7 +58,7 @@ export async function POST(request: NextRequest) {
       pricePerDay: Number(body.pricePerDay),
       shortDescription: body.shortDescription,
       description: body.description,
-      images: JSON.stringify(body.images ?? []),
+      images: JSON.stringify(images),
       whatsappMessageTemplate: body.whatsappMessageTemplate,
       queIncluye: body.queIncluye?.length
         ? JSON.stringify(body.queIncluye)
@@ -59,6 +66,12 @@ export async function POST(request: NextRequest) {
       availableIn: JSON.stringify(body.availableIn ?? []),
       publishedBy: body.publishedBy ?? "",
       whatsappNumber: body.whatsappNumber?.trim() || null,
+      deliveryMethod: body.deliveryMethod?.trim() || null,
+      condition: body.condition?.trim() || null,
+      availabilityNotes: body.availabilityNotes?.trim() || null,
+      requirements: body.requirements?.trim() || null,
+      minimumRentalPeriod: body.minimumRentalPeriod?.trim() || null,
+      importantInfo: body.importantInfo?.trim() || null,
     },
   });
 
@@ -80,5 +93,11 @@ export async function POST(request: NextRequest) {
       : [],
     publishedBy: product.publishedBy || undefined,
     whatsappNumber: product.whatsappNumber || undefined,
+    deliveryMethod: product.deliveryMethod || undefined,
+    condition: product.condition || undefined,
+    availabilityNotes: product.availabilityNotes || undefined,
+    requirements: product.requirements || undefined,
+    minimumRentalPeriod: product.minimumRentalPeriod || undefined,
+    importantInfo: product.importantInfo || undefined,
   });
 }

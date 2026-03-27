@@ -12,4 +12,10 @@ export interface Product {
   availableIn?: string[];
   publishedBy?: string;
   whatsappNumber?: string | null;
+  deliveryMethod?: string;
+  condition?: string;
+  availabilityNotes?: string;
+  requirements?: string;
+  minimumRentalPeriod?: string;
+  importantInfo?: string;
 }

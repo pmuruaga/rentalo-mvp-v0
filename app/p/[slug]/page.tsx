@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { getProductBySlug } from "@/lib/productService";
 import { getBaseWhatsAppUrl } from "@/lib/whatsapp";
 import { WhatsAppConsultForm } from "@/components/WhatsAppConsultForm";
-import { ProductImage } from "@/components/ProductImage";
+import { ProductGallery } from "@/components/ProductGallery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { siteName } from "@/lib/site";
@@ -56,7 +56,7 @@ export default async function ProductoPage({
   }
 
   const baseWhatsAppUrl = getBaseWhatsAppUrl(product.whatsappNumber);
-  const hasImages = product.images?.length > 0;
+  const images = product.images ?? [];
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -67,19 +67,7 @@ export default async function ProductoPage({
       </Button>
 
       <article className="mt-6">
-        {/* Fotos */}
-        {hasImages && (
-          <div className="mb-8 grid gap-4 sm:grid-cols-2">
-            {product.images.map((src, i) => (
-              <div
-                key={i}
-                className="relative aspect-[4/3] overflow-hidden rounded-lg bg-muted"
-              >
-                <ProductImage src={src} alt={`${product.name} - foto ${i + 1}`} />
-              </div>
-            ))}
-          </div>
-        )}
+        <ProductGallery images={images} productName={product.name} />
 
         <Card>
           <CardHeader>
@@ -115,6 +103,67 @@ export default async function ProductoPage({
                     <li key={i}>{item}</li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {(product.deliveryMethod ||
+              product.condition ||
+              product.availabilityNotes ||
+              product.requirements ||
+              product.minimumRentalPeriod ||
+              product.importantInfo) && (
+              <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                <h2 className="font-semibold">Información del alquiler</h2>
+                <dl className="space-y-2 text-sm">
+                  {product.deliveryMethod && (
+                    <div>
+                      <dt className="font-medium text-muted-foreground">
+                        Forma de entrega
+                      </dt>
+                      <dd>{product.deliveryMethod}</dd>
+                    </div>
+                  )}
+                  {product.condition && (
+                    <div>
+                      <dt className="font-medium text-muted-foreground">
+                        Estado
+                      </dt>
+                      <dd>{product.condition}</dd>
+                    </div>
+                  )}
+                  {product.minimumRentalPeriod && (
+                    <div>
+                      <dt className="font-medium text-muted-foreground">
+                        Período mínimo
+                      </dt>
+                      <dd>{product.minimumRentalPeriod}</dd>
+                    </div>
+                  )}
+                  {product.availabilityNotes && (
+                    <div>
+                      <dt className="font-medium text-muted-foreground">
+                        Disponibilidad
+                      </dt>
+                      <dd>{product.availabilityNotes}</dd>
+                    </div>
+                  )}
+                  {product.requirements && (
+                    <div>
+                      <dt className="font-medium text-muted-foreground">
+                        Requisitos
+                      </dt>
+                      <dd>{product.requirements}</dd>
+                    </div>
+                  )}
+                  {product.importantInfo && (
+                    <div>
+                      <dt className="font-medium text-muted-foreground">
+                        Importante
+                      </dt>
+                      <dd>{product.importantInfo}</dd>
+                    </div>
+                  )}
+                </dl>
               </div>
             )}
 
