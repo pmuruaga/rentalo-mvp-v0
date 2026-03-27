@@ -19,6 +19,12 @@ function toProduct(row: {
   availableIn: string;
   publishedBy: string;
   whatsappNumber: string | null;
+  deliveryMethod: string | null;
+  condition: string | null;
+  availabilityNotes: string | null;
+  requirements: string | null;
+  minimumRentalPeriod: string | null;
+  importantInfo: string | null;
 }): Product {
   return {
     id: row.id,
@@ -36,6 +42,12 @@ function toProduct(row: {
     availableIn: parseJsonArray(row.availableIn),
     publishedBy: row.publishedBy || undefined,
     whatsappNumber: row.whatsappNumber?.trim() || undefined,
+    deliveryMethod: row.deliveryMethod?.trim() || undefined,
+    condition: row.condition?.trim() || undefined,
+    availabilityNotes: row.availabilityNotes?.trim() || undefined,
+    requirements: row.requirements?.trim() || undefined,
+    minimumRentalPeriod: row.minimumRentalPeriod?.trim() || undefined,
+    importantInfo: row.importantInfo?.trim() || undefined,
   };
 }
 
@@ -82,6 +94,12 @@ export class PrismaProductRepository implements ProductRepository {
         availableIn: JSON.stringify(data.availableIn ?? []),
         publishedBy: data.publishedBy ?? "",
         whatsappNumber: data.whatsappNumber?.trim() || null,
+        deliveryMethod: data.deliveryMethod?.trim() || null,
+        condition: data.condition?.trim() || null,
+        availabilityNotes: data.availabilityNotes?.trim() || null,
+        requirements: data.requirements?.trim() || null,
+        minimumRentalPeriod: data.minimumRentalPeriod?.trim() || null,
+        importantInfo: data.importantInfo?.trim() || null,
       },
     });
     return toProduct(row);
@@ -109,6 +127,19 @@ export class PrismaProductRepository implements ProductRepository {
     if (data.publishedBy != null) updateData.publishedBy = data.publishedBy;
     if (data.whatsappNumber !== undefined)
       updateData.whatsappNumber = data.whatsappNumber?.trim() || null;
+    if (data.deliveryMethod !== undefined)
+      updateData.deliveryMethod = data.deliveryMethod?.trim() || null;
+    if (data.condition !== undefined)
+      updateData.condition = data.condition?.trim() || null;
+    if (data.availabilityNotes !== undefined)
+      updateData.availabilityNotes = data.availabilityNotes?.trim() || null;
+    if (data.requirements !== undefined)
+      updateData.requirements = data.requirements?.trim() || null;
+    if (data.minimumRentalPeriod !== undefined)
+      updateData.minimumRentalPeriod =
+        data.minimumRentalPeriod?.trim() || null;
+    if (data.importantInfo !== undefined)
+      updateData.importantInfo = data.importantInfo?.trim() || null;
 
     const row = await prisma.product.update({
       where: { id },

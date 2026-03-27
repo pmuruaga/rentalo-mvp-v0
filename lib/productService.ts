@@ -1,7 +1,7 @@
-import { JsonProductRepository } from "./repositories/JsonProductRepository";
+import { PrismaProductRepository } from "./repositories/PrismaProductRepository";
 import type { Product } from "./products";
 
-const repository = new JsonProductRepository();
+const repository = new PrismaProductRepository();
 
 export async function listProducts(filters?: {
   query?: string;

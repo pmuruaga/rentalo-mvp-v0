@@ -29,7 +29,10 @@ export async function PATCH(
   if (body.shortDescription != null)
     updateData.shortDescription = body.shortDescription;
   if (body.description != null) updateData.description = body.description;
-  if (body.images != null) updateData.images = JSON.stringify(body.images);
+  if (body.images != null) {
+    const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
+    updateData.images = JSON.stringify(images);
+  }
   if (body.whatsappMessageTemplate != null)
     updateData.whatsappMessageTemplate = body.whatsappMessageTemplate;
   if (body.queIncluye != null)
@@ -38,6 +41,19 @@ export async function PATCH(
   if (body.availableIn != null)
     updateData.availableIn = JSON.stringify(body.availableIn ?? []);
   if (body.publishedBy != null) updateData.publishedBy = body.publishedBy ?? "";
+  if (body.deliveryMethod !== undefined)
+    updateData.deliveryMethod = body.deliveryMethod?.trim() || null;
+  if (body.condition !== undefined)
+    updateData.condition = body.condition?.trim() || null;
+  if (body.availabilityNotes !== undefined)
+    updateData.availabilityNotes = body.availabilityNotes?.trim() || null;
+  if (body.requirements !== undefined)
+    updateData.requirements = body.requirements?.trim() || null;
+  if (body.minimumRentalPeriod !== undefined)
+    updateData.minimumRentalPeriod =
+      body.minimumRentalPeriod?.trim() || null;
+  if (body.importantInfo !== undefined)
+    updateData.importantInfo = body.importantInfo?.trim() || null;
 
   const product = await prisma.product.update({
     where: { id },
@@ -61,6 +77,13 @@ export async function PATCH(
       ? (JSON.parse(product.availableIn) as string[])
       : [],
     publishedBy: product.publishedBy || undefined,
+    whatsappNumber: product.whatsappNumber || undefined,
+    deliveryMethod: product.deliveryMethod || undefined,
+    condition: product.condition || undefined,
+    availabilityNotes: product.availabilityNotes || undefined,
+    requirements: product.requirements || undefined,
+    minimumRentalPeriod: product.minimumRentalPeriod || undefined,
+    importantInfo: product.importantInfo || undefined,
   });
 }
 

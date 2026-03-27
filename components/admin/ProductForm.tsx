@@ -18,6 +18,12 @@ interface Product {
   availableIn?: string[];
   publishedBy?: string;
   whatsappNumber?: string;
+  deliveryMethod?: string;
+  condition?: string;
+  availabilityNotes?: string;
+  requirements?: string;
+  minimumRentalPeriod?: string;
+  importantInfo?: string;
 }
 
 interface ProductFormProps {
@@ -68,6 +74,22 @@ export function ProductForm({
   const [whatsappNumber, setWhatsappNumber] = useState(
     product?.whatsappNumber ?? ""
   );
+  const [deliveryMethod, setDeliveryMethod] = useState(
+    product?.deliveryMethod ?? ""
+  );
+  const [condition, setCondition] = useState(product?.condition ?? "");
+  const [availabilityNotes, setAvailabilityNotes] = useState(
+    product?.availabilityNotes ?? ""
+  );
+  const [requirements, setRequirements] = useState(
+    product?.requirements ?? ""
+  );
+  const [minimumRentalPeriod, setMinimumRentalPeriod] = useState(
+    product?.minimumRentalPeriod ?? ""
+  );
+  const [importantInfo, setImportantInfo] = useState(
+    product?.importantInfo ?? ""
+  );
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -90,7 +112,8 @@ export function ProductForm({
         images: imagesStr
           .split("\n")
           .map((s) => s.trim())
-          .filter(Boolean),
+          .filter(Boolean)
+          .slice(0, 10),
         whatsappMessageTemplate,
         queIncluye: queIncluyeStr
           .split("\n")
@@ -102,6 +125,12 @@ export function ProductForm({
           .filter(Boolean),
         publishedBy: publishedBy.trim() || undefined,
         whatsappNumber: whatsappNumber.trim() || undefined,
+        deliveryMethod: deliveryMethod.trim() || undefined,
+        condition: condition.trim() || undefined,
+        availabilityNotes: availabilityNotes.trim() || undefined,
+        requirements: requirements.trim() || undefined,
+        minimumRentalPeriod: minimumRentalPeriod.trim() || undefined,
+        importantInfo: importantInfo.trim() || undefined,
       });
     } finally {
       setSaving(false);
@@ -174,14 +203,18 @@ export function ProductForm({
 
       <div>
         <label className="mb-1 block text-sm font-medium">
-          URLs de imágenes (una por línea)
+          URLs de imágenes (hasta 10, una por línea)
         </label>
         <textarea
           className="min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
           value={imagesStr}
           onChange={(e) => setImagesStr(e.target.value)}
           placeholder="/products/foto.jpg"
+          maxLength={5000}
         />
+        <p className="mt-1 text-xs text-muted-foreground">
+          {imagesStr.split("\n").filter((s) => s.trim()).length}/10 imágenes
+        </p>
       </div>
 
       <div>
@@ -214,6 +247,73 @@ export function ProductForm({
           value={availableInStr}
           onChange={(e) => setAvailableInStr(e.target.value)}
           placeholder="Frías"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">
+          Forma de entrega
+        </label>
+        <Input
+          value={deliveryMethod}
+          onChange={(e) => setDeliveryMethod(e.target.value)}
+          placeholder="Retiro, Envío, Ambos"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">
+          Estado / condición
+        </label>
+        <Input
+          value={condition}
+          onChange={(e) => setCondition(e.target.value)}
+          placeholder="Nuevo, Usado, Excelente estado, Con detalles"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">
+          Notas de disponibilidad
+        </label>
+        <Input
+          value={availabilityNotes}
+          onChange={(e) => setAvailabilityNotes(e.target.value)}
+          placeholder="Disponible inmediato, Solo fines de semana"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">
+          Requisitos
+        </label>
+        <Input
+          value={requirements}
+          onChange={(e) => setRequirements(e.target.value)}
+          placeholder="Se solicita DNI y seña"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">
+          Período mínimo de alquiler
+        </label>
+        <Input
+          value={minimumRentalPeriod}
+          onChange={(e) => setMinimumRentalPeriod(e.target.value)}
+          placeholder="Mínimo 1 día, Mínimo 3 horas"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">
+          Información importante
+        </label>
+        <textarea
+          className="min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+          value={importantInfo}
+          onChange={(e) => setImportantInfo(e.target.value)}
+          placeholder="Algo que el cliente debería saber antes de alquilar"
         />
       </div>
 

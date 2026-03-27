@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -21,6 +21,12 @@ model Product {
   availableIn            String   @default("[]") // JSON array: ["Frías"], ["Todo el país"]
   publishedBy            String   @default("")
   whatsappNumber         String?  // Número del publicador; si vacío, usa el general de Rentalo
+  deliveryMethod         String?  // Retiro, Envío, Ambos
+  condition              String?  // Nuevo, Usado, Excelente estado, etc.
+  availabilityNotes     String?
+  requirements           String?
+  minimumRentalPeriod     String?  // Mínimo 1 día, Mínimo 3 horas
+  importantInfo          String?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }
