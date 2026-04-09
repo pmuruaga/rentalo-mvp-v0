@@ -181,7 +181,7 @@ export default function Home() {
         <p className="mb-6 text-muted-foreground">
           ¿Tenés dudas? Escribinos por WhatsApp y te respondemos.
         </p>
-        <WhatsAppButton href={whatsappHref}>
+        <WhatsAppButton href={whatsappHref} analyticsEvent="click_whatsapp_home">
           Contactar por WhatsApp
         </WhatsAppButton>
       </section>
