@@ -1,5 +1,6 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { listProducts, getCategories } from "@/lib/productService";
+import { CatalogInteractionTracker } from "@/components/CatalogInteractionTracker";
 
 export const metadata = {
   title: "Catálogo",
@@ -12,6 +13,7 @@ export const metadata = {
   },
 };
 import { ProductImage } from "@/components/ProductImage";
+import { CatalogProductDetailLink } from "@/components/CatalogProductDetailLink";
 import {
   Card,
   CardContent,
@@ -47,6 +49,9 @@ export default async function CatalogoPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      <Suspense fallback={null}>
+        <CatalogInteractionTracker />
+      </Suspense>
       <h1 className="mb-6 text-2xl font-bold">Catálogo</h1>
 
       <form method="get" action="/catalogo" className="mb-8 flex flex-wrap gap-4">
@@ -115,7 +120,7 @@ export default async function CatalogoPage({
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full">
-                  <Link href={`/p/${p.slug}`}>Ver detalle</Link>
+                  <CatalogProductDetailLink slug={p.slug}>Ver detalle</CatalogProductDetailLink>
                 </Button>
               </CardFooter>
             </Card>

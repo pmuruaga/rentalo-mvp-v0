@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getProductBySlug } from "@/lib/productService";
 import { getBaseWhatsAppUrl } from "@/lib/whatsapp";
 import { WhatsAppConsultForm } from "@/components/WhatsAppConsultForm";
+import { ProductViewTracker } from "@/components/ProductViewTracker";
 import { ProductGallery } from "@/components/ProductGallery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -60,6 +61,7 @@ export default async function ProductoPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      <ProductViewTracker productSlug={slug} productName={product.name} />
       <Button variant="ghost" asChild>
         <Link href="/catalogo" className="text-[var(--brand-primary)] hover:text-[var(--brand-primary)]/80">
           ← Volver al catálogo
@@ -171,6 +173,7 @@ export default async function ProductoPage({
               <h2 className="mb-4 font-semibold">Consultar disponibilidad</h2>
               <WhatsAppConsultForm
                 productName={product.name}
+                productSlug={slug}
                 baseWhatsAppUrl={baseWhatsAppUrl}
                 city={process.env.CITY_DEFAULT ?? "Frías"}
               />

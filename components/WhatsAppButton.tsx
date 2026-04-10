@@ -1,18 +1,34 @@
 "use client";
 
+import { trackEvent } from "@/lib/analytics";
+
 interface WhatsAppButtonProps {
   href: string;
   children?: React.ReactNode;
   className?: string;
+  /** Evento GA4 opcional al hacer click (antes de abrir WhatsApp). */
+  analyticsEvent?: string;
+  analyticsParams?: Record<string, unknown>;
 }
 
-export function WhatsAppButton({ href, children, className }: WhatsAppButtonProps) {
+export function WhatsAppButton({
+  href,
+  children,
+  className,
+  analyticsEvent,
+  analyticsParams,
+}: WhatsAppButtonProps) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       className={`inline-flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-3 font-semibold text-white transition hover:bg-[#20BD5A] ${className ?? ""}`}
+      onClick={() => {
+        if (analyticsEvent) {
+          trackEvent(analyticsEvent, analyticsParams);
+        }
+      }}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

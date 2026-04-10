@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 
 interface WhatsAppConsultFormProps {
   productName: string;
+  productSlug: string;
   baseWhatsAppUrl: string;
   city?: string;
 }
@@ -17,6 +18,7 @@ function buildWhatsAppUrl(baseUrl: string, message: string): string {
 
 export function WhatsAppConsultForm({
   productName,
+  productSlug,
   baseWhatsAppUrl,
   city = "Frías",
 }: WhatsAppConsultFormProps) {
@@ -75,7 +77,12 @@ export function WhatsAppConsultForm({
           />
         </div>
       </div>
-      <WhatsAppButton href={href} className="w-full justify-center sm:w-auto">
+      <WhatsAppButton
+        href={href}
+        className="w-full justify-center sm:w-auto"
+        analyticsEvent="click_whatsapp_product"
+        analyticsParams={{ product_slug: productSlug, product_name: productName }}
+      >
         Consultar por WhatsApp
       </WhatsAppButton>
     </div>
