@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { serializePrismaProduct } from "@/lib/serializePrismaProduct";
 
-function requireAuth(request: NextRequest): string | NextResponse {
-  const key = request.headers.get("x-admin-key");
-  const adminKey = process.env.ADMIN_KEY;
-
-  if (!adminKey || key !== adminKey) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+async function requireUserId(): Promise<string | NextResponse> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Tenés que iniciar sesión para continuar." },
+      { status: 401 }
+    );
   }
-  return key;
+  return session.user.id;
 }
 
-export async function GET(request: NextRequest) {
-  const auth = requireAuth(request);
-  if (auth instanceof NextResponse) return auth;
+export async function GET() {
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
 
   const products = await prisma.product.findMany({
+    where: { ownerId: userId },
     orderBy: { name: "asc" },
   });
 
@@ -24,11 +30,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = requireAuth(request);
-  if (auth instanceof NextResponse) return auth;
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
 
   const body = await request.json();
   const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
+
   const product = await prisma.product.create({
     data: {
       name: body.name,
@@ -51,6 +58,7 @@ export async function POST(request: NextRequest) {
       requirements: body.requirements?.trim() || null,
       minimumRentalPeriod: body.minimumRentalPeriod?.trim() || null,
       importantInfo: body.importantInfo?.trim() || null,
+      ownerId: userId,
     },
   });
 

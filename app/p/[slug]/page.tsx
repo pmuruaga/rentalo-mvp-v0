@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { getProductBySlug } from "@/lib/productService";
 import { getBaseWhatsAppUrl } from "@/lib/whatsapp";
 import { WhatsAppConsultForm } from "@/components/WhatsAppConsultForm";
@@ -9,6 +11,7 @@ import { ProductGallery } from "@/components/ProductGallery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { siteName } from "@/lib/site";
+import { RequestRentalBlock } from "@/components/rentals/RequestRentalBlock";
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("es-AR", {
@@ -58,6 +61,11 @@ export default async function ProductoPage({
 
   const baseWhatsAppUrl = getBaseWhatsAppUrl(product.whatsappNumber);
   const images = product.images ?? [];
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const currentUserId = session?.user?.id ?? null;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -168,6 +176,16 @@ export default async function ProductoPage({
                 </dl>
               </div>
             )}
+
+            <div className="border-t pt-6">
+              <h2 className="mb-3 font-semibold">Solicitar alquiler</h2>
+              <RequestRentalBlock
+                productId={product.id}
+                productSlug={slug}
+                ownerId={product.ownerId}
+                currentUserId={currentUserId}
+              />
+            </div>
 
             <div className="border-t pt-6">
               <h2 className="mb-4 font-semibold">Consultar disponibilidad</h2>
