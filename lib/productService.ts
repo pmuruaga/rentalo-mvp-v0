@@ -33,6 +33,12 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   return repository.getBySlug(slug);
 }
 
+export async function listProductsByOwnerId(
+  ownerId: string
+): Promise<Product[]> {
+  return repository.listByOwnerId(ownerId);
+}
+
 const CATEGORY_ORDER = [
   "Eventos Infantiles",
   "Vehículos",

@@ -25,6 +25,7 @@ function toProduct(row: {
   requirements: string | null;
   minimumRentalPeriod: string | null;
   importantInfo: string | null;
+  ownerId: string | null;
 }): Product {
   return {
     id: row.id,
@@ -48,6 +49,7 @@ function toProduct(row: {
     requirements: row.requirements?.trim() || undefined,
     minimumRentalPeriod: row.minimumRentalPeriod?.trim() || undefined,
     importantInfo: row.importantInfo?.trim() || undefined,
+    ownerId: row.ownerId ?? null,
   };
 }
 
@@ -64,6 +66,14 @@ function parseJsonArray(str: string): string[] {
 export class PrismaProductRepository implements ProductRepository {
   async list(): Promise<Product[]> {
     const rows = await prisma.product.findMany({ orderBy: { name: "asc" } });
+    return rows.map(toProduct);
+  }
+
+  async listByOwnerId(ownerId: string): Promise<Product[]> {
+    const rows = await prisma.product.findMany({
+      where: { ownerId },
+      orderBy: { name: "asc" },
+    });
     return rows.map(toProduct);
   }
 
@@ -100,6 +110,7 @@ export class PrismaProductRepository implements ProductRepository {
         requirements: data.requirements?.trim() || null,
         minimumRentalPeriod: data.minimumRentalPeriod?.trim() || null,
         importantInfo: data.importantInfo?.trim() || null,
+        ownerId: data.ownerId ?? null,
       },
     });
     return toProduct(row);
@@ -140,6 +151,7 @@ export class PrismaProductRepository implements ProductRepository {
         data.minimumRentalPeriod?.trim() || null;
     if (data.importantInfo !== undefined)
       updateData.importantInfo = data.importantInfo?.trim() || null;
+    if (data.ownerId !== undefined) updateData.ownerId = data.ownerId;
 
     const row = await prisma.product.update({
       where: { id },

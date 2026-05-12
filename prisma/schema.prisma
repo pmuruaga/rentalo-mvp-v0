@@ -7,6 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum RentalStatus {
+  REQUESTED
+  APPROVED
+  ACTIVE
+  RETURNED
+  CANCELLED
+}
+
 model Product {
   id                     String   @id @default(cuid())
   name                   String
@@ -27,6 +35,98 @@ model Product {
   requirements           String?
   minimumRentalPeriod     String?  // Mínimo 1 día, Mínimo 3 horas
   importantInfo          String?
+  ownerId                String?
+  owner                  User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  rentals                Rental[]
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  products      Product[]
+  rentalsAsRenter Rental[] @relation("RentalRenter")
+  rentalsAsOwner  Rental[] @relation("RentalOwner")
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Rental {
+  id         String       @id @default(cuid())
+  productId  String
+  renterId   String
+  ownerId    String
+  status     RentalStatus @default(REQUESTED)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  returnedAt DateTime?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  renter  User    @relation("RentalRenter", fields: [renterId], references: [id], onDelete: Cascade)
+  owner   User    @relation("RentalOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([renterId])
+  @@index([ownerId])
+  @@index([status])
+  @@map("rental")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String   @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }

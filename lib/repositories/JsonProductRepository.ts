@@ -25,6 +25,7 @@ function toProduct(raw: Record<string, unknown>): Product {
       : undefined,
     publishedBy: raw.publishedBy ? String(raw.publishedBy) : undefined,
     whatsappNumber: raw.whatsappNumber ? String(raw.whatsappNumber) : undefined,
+    ownerId: raw.ownerId ? String(raw.ownerId) : null,
   };
 }
 
@@ -40,6 +41,10 @@ export class JsonProductRepository implements ProductRepository {
 
   async list(): Promise<Product[]> {
     return [...this.products];
+  }
+
+  async listByOwnerId(ownerId: string): Promise<Product[]> {
+    return this.products.filter((p) => p.ownerId === ownerId);
   }
 
   async getBySlug(slug: string): Promise<Product | null> {

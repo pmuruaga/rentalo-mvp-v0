@@ -19,10 +19,12 @@ export interface ProductCreateInput {
   requirements?: string;
   minimumRentalPeriod?: string;
   importantInfo?: string;
+  ownerId?: string | null;
 }
 
 export interface ProductRepository {
   list(): Promise<Product[]>;
+  listByOwnerId(ownerId: string): Promise<Product[]>;
   getBySlug(slug: string): Promise<Product | null>;
   getById(id: string): Promise<Product | null>;
   create(data: ProductCreateInput): Promise<Product>;

@@ -18,4 +18,6 @@ export interface Product {
   requirements?: string;
   minimumRentalPeriod?: string;
   importantInfo?: string;
+  /** Dueño (Better Auth). Null en catálogo heredado o creado solo por admin. */
+  ownerId?: string | null;
 }
