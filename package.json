@@ -12,6 +12,7 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@azure/storage-blob": "^12.31.0",
     "@better-auth/prisma-adapter": "^1.6.9",
     "@prisma/client": "^6.0.0",
     "better-auth": "^1.6.9",

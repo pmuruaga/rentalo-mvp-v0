@@ -1,5 +1,18 @@
 import type { Product as PrismaProduct } from "@prisma/client";
 
+export function parseImagesJson(raw: string): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((u): u is string => typeof u === "string" && u.trim().length > 0)
+      .slice(0, 10);
+  } catch {
+    return [];
+  }
+}
+
 export type ProductJson = {
   id: string;
   name: string;
@@ -32,7 +45,7 @@ export function serializePrismaProduct(p: PrismaProduct): ProductJson {
     pricePerDay: p.pricePerDay,
     shortDescription: p.shortDescription,
     description: p.description,
-    images: JSON.parse(p.images) as string[],
+    images: parseImagesJson(p.images),
     whatsappMessageTemplate: p.whatsappMessageTemplate,
     queIncluye: p.queIncluye ? (JSON.parse(p.queIncluye) as string[]) : undefined,
     availableIn: p.availableIn ? (JSON.parse(p.availableIn) as string[]) : [],

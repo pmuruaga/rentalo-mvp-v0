@@ -115,6 +115,7 @@ export function AdminPanel({ adminKey }: AdminPanelProps) {
               ? products.find((p) => p.id === editingId)
               : undefined
           }
+          adminKey={adminKey}
           onSave={handleSave}
           onCancel={cancelForm}
         />
