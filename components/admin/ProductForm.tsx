@@ -26,8 +26,11 @@ interface Product {
   importantInfo?: string;
 }
 
+const MAX_IMAGES = 10;
+
 interface ProductFormProps {
   product?: Product;
+  adminKey?: string;
   onSave: (data: Partial<Product> & { name: string }) => Promise<void>;
   onCancel: () => void;
 }
@@ -43,6 +46,7 @@ function slugify(text: string): string {
 
 export function ProductForm({
   product,
+  adminKey,
   onSave,
   onCancel,
 }: ProductFormProps) {
@@ -56,9 +60,9 @@ export function ProductForm({
     product?.shortDescription ?? ""
   );
   const [description, setDescription] = useState(product?.description ?? "");
-  const [imagesStr, setImagesStr] = useState(
-    product?.images?.join("\n") ?? ""
-  );
+  const [images, setImages] = useState<string[]>(product?.images ?? []);
+  const [uploading, setUploading] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState(
     product?.whatsappMessageTemplate ?? ""
   );
@@ -98,6 +102,94 @@ export function ProductForm({
     }
   }, [name, product]);
 
+  useEffect(() => {
+    setImages(product?.images ?? []);
+    setImageError(null);
+  }, [product?.id]);
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const trimmedSlug = slug.trim();
+    if (trimmedSlug) formData.append("productSlug", trimmedSlug);
+    if (product?.id) formData.append("productId", product.id);
+
+    const res = await fetch("/api/products/images/upload", {
+      method: "POST",
+      body: formData,
+      credentials: "same-origin",
+      headers: adminKey ? { "x-admin-key": adminKey } : undefined,
+    });
+
+    let data: { url?: string; error?: string };
+    try {
+      data = (await res.json()) as { url?: string; error?: string };
+    } catch {
+      throw new Error(
+        res.ok
+          ? "Respuesta inválida del servidor."
+          : "No se pudo subir la imagen."
+      );
+    }
+
+    if (!res.ok) {
+      throw new Error(data.error ?? "No se pudo subir la imagen.");
+    }
+    if (!data.url) {
+      throw new Error("Respuesta inválida del servidor.");
+    }
+    return data.url;
+  };
+
+  const handleImageFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    e.target.value = "";
+    if (!fileList?.length) return;
+
+    const remaining = MAX_IMAGES - images.length;
+    if (remaining <= 0) {
+      setImageError("Máximo 10 imágenes por producto.");
+      return;
+    }
+
+    const files = Array.from(fileList).slice(0, remaining);
+    const truncated = fileList.length > remaining;
+
+    setUploading(true);
+    let uploadedCount = 0;
+    try {
+      for (const file of files) {
+        const url = await uploadImage(file);
+        uploadedCount += 1;
+        setImages((prev) => [...prev, url].slice(0, MAX_IMAGES));
+      }
+      if (truncated) {
+        setImageError(`Solo se agregaron ${remaining} imagen(es) (límite 10).`);
+      } else {
+        setImageError(null);
+      }
+    } catch (err) {
+      const message =
+        err instanceof TypeError
+          ? "No se pudo conectar con el servidor. Revisá tu conexión."
+          : err instanceof Error
+            ? err.message
+            : "Error al subir imágenes.";
+      setImageError(
+        uploadedCount > 0
+          ? `${message} (${uploadedCount} imagen(es) ya se subieron.)`
+          : message
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImageError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -109,11 +201,7 @@ export function ProductForm({
         pricePerDay: Number(pricePerDay) || 0,
         shortDescription,
         description,
-        images: imagesStr
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .slice(0, 10),
+        images: images.slice(0, MAX_IMAGES),
         whatsappMessageTemplate,
         queIncluye: queIncluyeStr
           .split("\n")
@@ -203,18 +291,50 @@ export function ProductForm({
 
       <div>
         <label className="mb-1 block text-sm font-medium">
-          URLs de imágenes (hasta 10, una por línea)
+          Imágenes (hasta 10)
         </label>
-        <textarea
-          className="min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-          value={imagesStr}
-          onChange={(e) => setImagesStr(e.target.value)}
-          placeholder="/products/foto.jpg"
-          maxLength={5000}
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          disabled={uploading || images.length >= MAX_IMAGES}
+          onChange={(e) => void handleImageFiles(e)}
+          className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-sm"
         />
         <p className="mt-1 text-xs text-muted-foreground">
-          {imagesStr.split("\n").filter((s) => s.trim()).length}/10 imágenes
+          {images.length}/{MAX_IMAGES} imágenes
+          {uploading ? " · Subiendo…" : null}
         </p>
+        {imageError ? (
+          <p className="mt-1 text-xs text-destructive" role="alert">
+            {imageError}
+          </p>
+        ) : null}
+        {images.length > 0 ? (
+          <ul className="mt-3 flex flex-wrap gap-3">
+            {images.map((url, index) => (
+              <li key={`${url}-${index}`} className="relative">
+                <div className="h-20 w-20 overflow-hidden rounded-md border bg-muted">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  disabled={uploading}
+                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground"
+                  aria-label="Quitar imagen"
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
       <div>
@@ -340,8 +460,8 @@ export function ProductForm({
       </div>
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={saving}>
-          {saving ? "Guardando..." : "Guardar"}
+        <Button type="submit" disabled={saving || uploading}>
+          {saving ? "Guardando..." : uploading ? "Subiendo imágenes…" : "Guardar"}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar

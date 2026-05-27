@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { parseImagesJson } from "@/lib/serializePrismaProduct";
 import type { Product } from "@/lib/products";
 import type {
   ProductRepository,
@@ -35,7 +36,7 @@ function toProduct(row: {
     pricePerDay: row.pricePerDay,
     shortDescription: row.shortDescription,
     description: row.description,
-    images: JSON.parse(row.images) as string[],
+    images: parseImagesJson(row.images),
     whatsappMessageTemplate: row.whatsappMessageTemplate,
     queIncluye: row.queIncluye
       ? (JSON.parse(row.queIncluye) as string[])
