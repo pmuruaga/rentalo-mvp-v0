@@ -108,6 +108,14 @@ export function ProductForm({
   }, [product?.id]);
 
   const uploadImage = async (file: File): Promise<string> => {
+    console.info("[ProductForm] upload start", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      productId: product?.id ?? null,
+      productSlug: slug.trim() || null,
+    });
+
     const formData = new FormData();
     formData.append("file", file);
     const trimmedSlug = slug.trim();
@@ -125,12 +133,23 @@ export function ProductForm({
     try {
       data = (await res.json()) as { url?: string; error?: string };
     } catch {
+      console.warn("[ProductForm] upload non-json response", {
+        status: res.status,
+        ok: res.ok,
+      });
       throw new Error(
         res.ok
           ? "Respuesta inválida del servidor."
           : "No se pudo subir la imagen."
       );
     }
+
+    console.info("[ProductForm] upload response", {
+      status: res.status,
+      ok: res.ok,
+      hasUrl: !!data.url,
+      error: data.error ?? null,
+    });
 
     if (!res.ok) {
       throw new Error(data.error ?? "No se pudo subir la imagen.");
@@ -146,16 +165,30 @@ export function ProductForm({
     e.target.value = "";
     if (!fileList?.length) return;
 
+    console.info("[ProductForm] files selected", {
+      count: fileList.length,
+      files: Array.from(fileList).map((f) => ({
+        name: f.name,
+        type: f.type,
+        size: f.size,
+      })),
+      existingImages: images.length,
+    });
+
+    // Feedback inmediato (aunque falle rápido)
+    setImageError(null);
+    setUploading(true);
+
     const remaining = MAX_IMAGES - images.length;
     if (remaining <= 0) {
       setImageError("Máximo 10 imágenes por producto.");
+      setUploading(false);
       return;
     }
 
     const files = Array.from(fileList).slice(0, remaining);
     const truncated = fileList.length > remaining;
 
-    setUploading(true);
     let uploadedCount = 0;
     try {
       for (const file of files) {
