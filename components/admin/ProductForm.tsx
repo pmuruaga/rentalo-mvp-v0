@@ -108,18 +108,13 @@ export function ProductForm({
   }, [product?.id]);
 
   const uploadImage = async (file: File): Promise<string> => {
-    console.info("[ProductForm] upload start", {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      productId: product?.id ?? null,
-      productSlug: slug.trim() || null,
-    });
+    console.log("[Rentalo upload] starting upload", file.name);
 
     const formData = new FormData();
     formData.append("file", file);
-    const trimmedSlug = slug.trim();
-    if (trimmedSlug) formData.append("productSlug", trimmedSlug);
+    const productSlug =
+      slug.trim() || (name.trim() ? slugify(name) : "");
+    if (productSlug) formData.append("productSlug", productSlug);
     if (product?.id) formData.append("productId", product.id);
 
     const res = await fetch("/api/products/images/upload", {
@@ -133,10 +128,8 @@ export function ProductForm({
     try {
       data = (await res.json()) as { url?: string; error?: string };
     } catch {
-      console.warn("[ProductForm] upload non-json response", {
-        status: res.status,
-        ok: res.ok,
-      });
+      console.log("[Rentalo upload] response.status", res.status);
+      console.log("[Rentalo upload] response body", "(no JSON)");
       throw new Error(
         res.ok
           ? "Respuesta inválida del servidor."
@@ -144,12 +137,8 @@ export function ProductForm({
       );
     }
 
-    console.info("[ProductForm] upload response", {
-      status: res.status,
-      ok: res.ok,
-      hasUrl: !!data.url,
-      error: data.error ?? null,
-    });
+    console.log("[Rentalo upload] response.status", res.status);
+    console.log("[Rentalo upload] response body", data);
 
     if (!res.ok) {
       throw new Error(data.error ?? "No se pudo subir la imagen.");
@@ -157,23 +146,31 @@ export function ProductForm({
     if (!data.url) {
       throw new Error("Respuesta inválida del servidor.");
     }
+
+    console.log("[Rentalo upload] URL received", data.url);
     return data.url;
   };
 
   const handleImageFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("[Rentalo upload] onChange fired");
+
     const fileList = e.target.files;
+    const count = fileList?.length ?? 0;
+    console.log("[Rentalo upload] file count:", count);
+
+    if (fileList?.length) {
+      console.log(
+        "[Rentalo upload] files:",
+        Array.from(fileList).map((f) => ({
+          name: f.name,
+          type: f.type,
+          size: f.size,
+        }))
+      );
+    }
+
     e.target.value = "";
     if (!fileList?.length) return;
-
-    console.info("[ProductForm] files selected", {
-      count: fileList.length,
-      files: Array.from(fileList).map((f) => ({
-        name: f.name,
-        type: f.type,
-        size: f.size,
-      })),
-      existingImages: images.length,
-    });
 
     // Feedback inmediato (aunque falle rápido)
     setImageError(null);
