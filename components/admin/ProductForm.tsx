@@ -128,7 +128,7 @@ export function ProductForm({
     try {
       data = (await res.json()) as { url?: string; error?: string };
     } catch {
-      console.log("[Rentalo upload] response.status", res.status);
+      console.log("[Rentalo upload] response status", res.status);
       console.log("[Rentalo upload] response body", "(no JSON)");
       throw new Error(
         res.ok
@@ -137,7 +137,7 @@ export function ProductForm({
       );
     }
 
-    console.log("[Rentalo upload] response.status", res.status);
+    console.log("[Rentalo upload] response status", res.status);
     console.log("[Rentalo upload] response body", data);
 
     if (!res.ok) {
@@ -147,7 +147,7 @@ export function ProductForm({
       throw new Error("Respuesta inválida del servidor.");
     }
 
-    console.log("[Rentalo upload] URL received", data.url);
+    console.log("[Rentalo upload] uploaded url", data.url);
     return data.url;
   };
 
@@ -158,10 +158,12 @@ export function ProductForm({
     const count = fileList?.length ?? 0;
     console.log("[Rentalo upload] file count:", count);
 
-    if (fileList?.length) {
+    // Copiar antes de resetear el input: FileList es live y se vacía al limpiar value.
+    const selectedFiles = fileList?.length ? Array.from(fileList) : [];
+    if (selectedFiles.length) {
       console.log(
         "[Rentalo upload] files:",
-        Array.from(fileList).map((f) => ({
+        selectedFiles.map((f) => ({
           name: f.name,
           type: f.type,
           size: f.size,
@@ -170,9 +172,8 @@ export function ProductForm({
     }
 
     e.target.value = "";
-    if (!fileList?.length) return;
+    if (selectedFiles.length === 0) return;
 
-    // Feedback inmediato (aunque falle rápido)
     setImageError(null);
     setUploading(true);
 
@@ -183,8 +184,10 @@ export function ProductForm({
       return;
     }
 
-    const files = Array.from(fileList).slice(0, remaining);
-    const truncated = fileList.length > remaining;
+    const files = selectedFiles.slice(0, remaining);
+    const truncated = selectedFiles.length > remaining;
+
+    console.log("[Rentalo upload] beginning upload loop", files.length);
 
     let uploadedCount = 0;
     try {
