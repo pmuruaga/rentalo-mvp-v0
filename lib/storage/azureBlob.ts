@@ -29,12 +29,17 @@ function safePathSegment(value: string): string {
 }
 
 async function getContainerClient() {
+  console.log("[Rentalo upload API] creación de BlobServiceClient");
   const connectionString = requiredEnv("AZURE_STORAGE_CONNECTION_STRING");
   const containerName = trimSlashes(requiredEnv("AZURE_STORAGE_CONTAINER_NAME"));
 
   const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+  console.log("[Rentalo upload API] BlobServiceClient creado");
+
+  console.log("[Rentalo upload API] obtención del container:", containerName);
   const containerClient = blobServiceClient.getContainerClient(containerName);
   await containerClient.createIfNotExists();
+  console.log("[Rentalo upload API] container listo");
   return containerClient;
 }
 
@@ -70,10 +75,18 @@ export async function uploadProductImage(file: File, productSlugOrId: string): P
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
   const buffer = Buffer.from(await file.arrayBuffer());
+  console.log("[Rentalo upload API] uploadBlob:", {
+    blobName,
+    bytes: buffer.length,
+    contentType: file.type,
+  });
   await blockBlobClient.uploadData(buffer, {
     blobHTTPHeaders: { blobContentType: file.type },
   });
+  console.log("[Rentalo upload API] uploadBlob OK");
 
-  return publicUrlForBlob(blobName);
+  const url = publicUrlForBlob(blobName);
+  console.log("[Rentalo upload API] URL generada (azureBlob):", url);
+  return url;
 }
 
