@@ -8,6 +8,14 @@ export const runtime = "nodejs";
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
+function storageEnvDiagnostic() {
+  return {
+    hasConnectionString: Boolean(process.env.AZURE_STORAGE_CONNECTION_STRING),
+    containerName: process.env.AZURE_STORAGE_CONTAINER_NAME ?? null,
+    hasPublicBaseUrl: Boolean(process.env.AZURE_STORAGE_PUBLIC_BASE_URL),
+  };
+}
+
 async function requireUploaderId(): Promise<string | NextResponse> {
   const requestHeaders = await headers();
   const adminKeyHeader = requestHeaders.get("x-admin-key");
@@ -89,23 +97,22 @@ export async function POST(request: Request) {
 
   console.log("[Rentalo upload API] identifier:", identifier);
 
+  const storageEnv = storageEnvDiagnostic();
+  console.log("[Rentalo upload API] storage env diagnostic", storageEnv);
+
   try {
     console.log("[Rentalo upload API] llamando uploadProductImage");
     const url = await uploadProductImage(file, identifier);
     console.log("[Rentalo upload API] URL generada:", url);
     return NextResponse.json({ url });
-  } catch (err) {
-    console.error("[Rentalo upload API] error completo:", err);
-    if (err instanceof Error) {
-      console.error("[Rentalo upload API] mensaje exacto:", err.message);
-      console.error("[Rentalo upload API] stack trace:", err.stack);
-    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
 
-    const message = err instanceof Error ? err.message : "Error inesperado";
-
-    if (message.startsWith("Missing env var:")) {
-      return NextResponse.json({ error: message }, { status: 500 });
-    }
+    console.error("[Rentalo upload API] error", {
+      message,
+      stack: error instanceof Error ? error.stack : undefined,
+      storageEnv,
+    });
 
     if (message.includes("Invalid image type")) {
       return NextResponse.json(
@@ -120,7 +127,14 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "No se pudo subir la imagen.",
+        detail: message,
+        storageEnv,
+      },
+      { status: 500 }
+    );
   }
 }
 

@@ -124,9 +124,13 @@ export function ProductForm({
       headers: adminKey ? { "x-admin-key": adminKey } : undefined,
     });
 
-    let data: { url?: string; error?: string };
+    let data: { url?: string; error?: string; detail?: string };
     try {
-      data = (await res.json()) as { url?: string; error?: string };
+      data = (await res.json()) as {
+        url?: string;
+        error?: string;
+        detail?: string;
+      };
     } catch {
       console.log("[Rentalo upload] response status", res.status);
       console.log("[Rentalo upload] response body", "(no JSON)");
@@ -141,6 +145,9 @@ export function ProductForm({
     console.log("[Rentalo upload] response body", data);
 
     if (!res.ok) {
+      if (data.detail) {
+        console.error("[Rentalo upload] server detail:", data.detail);
+      }
       throw new Error(data.error ?? "No se pudo subir la imagen.");
     }
     if (!data.url) {
