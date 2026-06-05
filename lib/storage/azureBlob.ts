@@ -7,14 +7,64 @@ const MAX_PRODUCT_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
 
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
+function normalizeEnvValue(value: string): string {
+  let normalized = value.trim();
+  if (
+    (normalized.startsWith('"') && normalized.endsWith('"')) ||
+    (normalized.startsWith("'") && normalized.endsWith("'"))
+  ) {
+    normalized = normalized.slice(1, -1).trim();
+  }
+  return normalized;
+}
+
 function requiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`Missing env var: ${name}`);
-  return value;
+  return normalizeEnvValue(value);
 }
 
 function trimSlashes(value: string): string {
   return value.replace(/^\/+|\/+$/g, "");
+}
+
+function accountNameFromConnectionString(connectionString: string): string | null {
+  const match = /(?:^|;)AccountName=([^;]+)/i.exec(connectionString);
+  return match ? match[1].trim() : null;
+}
+
+function getPublicBaseUrl(): string {
+  const containerName = trimSlashes(requiredEnv("AZURE_STORAGE_CONTAINER_NAME"));
+
+  const envBase = process.env.AZURE_STORAGE_PUBLIC_BASE_URL;
+  if (envBase) {
+    const normalized = normalizeEnvValue(envBase).replace(/\/+$/g, "");
+    try {
+      new URL(normalized);
+      return normalized;
+    } catch {
+      console.warn(
+        "[Rentalo upload API] AZURE_STORAGE_PUBLIC_BASE_URL inválida, usando fallback"
+      );
+    }
+  }
+
+  const connectionString = requiredEnv("AZURE_STORAGE_CONNECTION_STRING");
+  const accountName = accountNameFromConnectionString(connectionString);
+  if (!accountName) {
+    throw new Error(
+      "Could not extract AccountName from AZURE_STORAGE_CONNECTION_STRING"
+    );
+  }
+
+  return `https://${accountName}.blob.core.windows.net/${containerName}`;
+}
+
+function encodeBlobPath(blobName: string): string {
+  return trimSlashes(blobName)
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
 }
 
 function safePathSegment(value: string): string {
@@ -44,8 +94,15 @@ async function getContainerClient() {
 }
 
 function publicUrlForBlob(blobName: string): string {
-  const base = requiredEnv("AZURE_STORAGE_PUBLIC_BASE_URL").replace(/\/+$/g, "");
-  return `${base}/${trimSlashes(blobName)}`;
+  const baseUrl = getPublicBaseUrl();
+  const encodedPath = encodeBlobPath(blobName);
+  const publicUrl = `${baseUrl}/${encodedPath}`;
+
+  console.log("[Rentalo upload API] baseUrl normalizada:", baseUrl);
+  console.log("[Rentalo upload API] blobName:", blobName);
+  console.log("[Rentalo upload API] publicUrl generada:", publicUrl);
+
+  return publicUrl;
 }
 
 export async function uploadProductImage(file: File, productSlugOrId: string): Promise<string> {
@@ -85,8 +142,6 @@ export async function uploadProductImage(file: File, productSlugOrId: string): P
   });
   console.log("[Rentalo upload API] uploadBlob OK");
 
-  const url = publicUrlForBlob(blobName);
-  console.log("[Rentalo upload API] URL generada (azureBlob):", url);
-  return url;
+  return publicUrlForBlob(blobName);
 }
 
