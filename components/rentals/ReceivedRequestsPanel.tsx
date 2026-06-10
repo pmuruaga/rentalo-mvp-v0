@@ -51,7 +51,10 @@ export function ReceivedRequestsPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const setStatus = async (id: string, status: "APPROVED" | "CANCELLED") => {
+  const setStatus = async (
+    id: string,
+    status: "APPROVED" | "CANCELLED" | "RETURN_CONFIRMED"
+  ) => {
     setBusyId(id);
     setError(null);
     const res = await fetch(`/api/me/rental-requests/${id}`, {
@@ -136,6 +139,16 @@ export function ReceivedRequestsPanel() {
                       Cancelar
                     </Button>
                   </div>
+                ) : r.status === "RETURNED" ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={busyId === r.id}
+                    onClick={() => void setStatus(r.id, "RETURN_CONFIRMED")}
+                  >
+                    {busyId === r.id ? "…" : "Confirmar devolución en condiciones"}
+                  </Button>
                 ) : (
                   <span className="text-xs text-muted-foreground">—</span>
                 )}

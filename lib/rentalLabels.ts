@@ -2,7 +2,8 @@ const LABELS: Record<string, string> = {
   REQUESTED: "Solicitado",
   APPROVED: "Aprobado",
   ACTIVE: "En curso",
-  RETURNED: "Devuelto",
+  RETURNED: "Devuelto, pendiente de confirmación",
+  RETURN_CONFIRMED: "Devolución confirmada",
   CANCELLED: "Cancelado",
 };
 
