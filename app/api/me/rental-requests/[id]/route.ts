@@ -38,11 +38,13 @@ export async function PATCH(
       ? RentalStatus.APPROVED
       : body.status === "CANCELLED"
         ? RentalStatus.CANCELLED
-        : null;
+        : body.status === "RETURN_CONFIRMED"
+          ? RentalStatus.RETURN_CONFIRMED
+          : null;
 
   if (!next) {
     return NextResponse.json(
-      { error: "Estado inválido. Usá APPROVED o CANCELLED." },
+      { error: "Estado inválido. Usá APPROVED, CANCELLED o RETURN_CONFIRMED." },
       { status: 400 }
     );
   }
@@ -60,7 +62,14 @@ export async function PATCH(
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
-  if (rental.status !== RentalStatus.REQUESTED) {
+  if (next === RentalStatus.RETURN_CONFIRMED) {
+    if (rental.status !== RentalStatus.RETURNED) {
+      return NextResponse.json(
+        { error: "Solo podés confirmar la devolución de un alquiler devuelto." },
+        { status: 400 }
+      );
+    }
+  } else if (rental.status !== RentalStatus.REQUESTED) {
     return NextResponse.json(
       { error: "Solo podés responder solicitudes pendientes." },
       { status: 400 }
@@ -69,7 +78,10 @@ export async function PATCH(
 
   const updated = await prisma.rental.update({
     where: { id },
-    data: { status: next },
+    data:
+      next === RentalStatus.RETURN_CONFIRMED
+        ? { status: next, confirmedReturnedAt: new Date() }
+        : { status: next },
     include: {
       product: { select: { id: true, name: true, slug: true } },
       renter: { select: { id: true, name: true, email: true } },

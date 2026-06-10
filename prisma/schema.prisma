@@ -12,6 +12,7 @@ enum RentalStatus {
   APPROVED
   ACTIVE
   RETURNED
+  RETURN_CONFIRMED
   CANCELLED
 }
 
@@ -71,6 +72,7 @@ model Rental {
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
   returnedAt DateTime?
+  confirmedReturnedAt DateTime?
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   renter  User    @relation("RentalRenter", fields: [renterId], references: [id], onDelete: Cascade)
