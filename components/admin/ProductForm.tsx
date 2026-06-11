@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -28,9 +29,19 @@ interface Product {
 
 const MAX_IMAGES = 10;
 
+interface PublisherInfo {
+  publishedBy: string;
+  whatsappNumber: string;
+}
+
 interface ProductFormProps {
   product?: Product;
   adminKey?: string;
+  /**
+   * Si se pasa, "Publicado por" y "WhatsApp" se muestran como texto no
+   * editable (se derivan del perfil del usuario en el servidor).
+   */
+  publisher?: PublisherInfo;
   onSave: (data: Partial<Product> & { name: string }) => Promise<void>;
   onCancel: () => void;
 }
@@ -47,6 +58,7 @@ function slugify(text: string): string {
 export function ProductForm({
   product,
   adminKey,
+  publisher,
   onSave,
   onCancel,
 }: ProductFormProps) {
@@ -251,8 +263,12 @@ export function ProductForm({
           .split("\n")
           .map((s) => s.trim())
           .filter(Boolean),
-        publishedBy: publishedBy.trim() || undefined,
-        whatsappNumber: whatsappNumber.trim() || undefined,
+        ...(publisher
+          ? {}
+          : {
+              publishedBy: publishedBy.trim() || undefined,
+              whatsappNumber: whatsappNumber.trim() || undefined,
+            }),
         deliveryMethod: deliveryMethod.trim() || undefined,
         condition: condition.trim() || undefined,
         availabilityNotes: availabilityNotes.trim() || undefined,
@@ -477,27 +493,57 @@ export function ProductForm({
         />
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium">
-          Publicado por
-        </label>
-        <Input
-          value={publishedBy}
-          onChange={(e) => setPublishedBy(e.target.value)}
-          placeholder="PabloMur81, CrokyCrokyEventos"
-        />
-      </div>
+      {publisher ? (
+        <div className="space-y-2 rounded-md border bg-muted/40 p-3 text-sm">
+          <p>
+            <span className="font-medium">Publicado por:</span>{" "}
+            {publisher.publishedBy}
+          </p>
+          <p>
+            <span className="font-medium">WhatsApp de contacto:</span>{" "}
+            {publisher.whatsappNumber || "—"}
+          </p>
+          {!publisher.whatsappNumber ? (
+            <p className="text-amber-600">
+              Completá tu WhatsApp en{" "}
+              <Link
+                href="/perfil"
+                className="font-medium underline hover:no-underline"
+              >
+                tu perfil
+              </Link>{" "}
+              para que puedan contactarte.
+            </p>
+          ) : null}
+          <p className="text-xs text-muted-foreground">
+            Estos datos se toman automáticamente de tu perfil.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Publicado por
+            </label>
+            <Input
+              value={publishedBy}
+              onChange={(e) => setPublishedBy(e.target.value)}
+              placeholder="PabloMur81, CrokyCrokyEventos"
+            />
+          </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium">
-          WhatsApp del publicador (opcional, ej: 5493851234567)
-        </label>
-        <Input
-          value={whatsappNumber}
-          onChange={(e) => setWhatsappNumber(e.target.value)}
-          placeholder="Si está vacío, usa el número general de Rentalo"
-        />
-      </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              WhatsApp del publicador (opcional, ej: 5493851234567)
+            </label>
+            <Input
+              value={whatsappNumber}
+              onChange={(e) => setWhatsappNumber(e.target.value)}
+              placeholder="Si está vacío, usa el número general de Rentalo"
+            />
+          </div>
+        </>
+      )}
 
       <div className="flex gap-2">
         <Button type="submit" disabled={saving || uploading}>

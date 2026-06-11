@@ -12,6 +12,9 @@ export function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isBusiness, setIsBusiness] = useState(false);
+  const [businessName, setBusinessName] = useState("");
+  const [contactWhatsapp, setContactWhatsapp] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,6 +27,9 @@ export function RegisterForm() {
         name,
         email,
         password,
+        isBusiness,
+        businessName: isBusiness ? businessName.trim() : "",
+        contactWhatsapp: contactWhatsapp.trim(),
       });
       if (signError) {
         setError(signError.message ?? "No se pudo crear la cuenta.");
@@ -82,6 +88,51 @@ export function RegisterForm() {
         <p className="text-xs text-muted-foreground">
           Mínimo 8 caracteres.
         </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          id="register-is-business"
+          type="checkbox"
+          className="h-4 w-4 accent-[var(--brand-primary)]"
+          checked={isBusiness}
+          onChange={(e) => setIsBusiness(e.target.checked)}
+        />
+        <label htmlFor="register-is-business" className="text-sm font-medium">
+          Es Empresa/Emprendimiento
+        </label>
+      </div>
+      {isBusiness ? (
+        <div className="space-y-2">
+          <label
+            htmlFor="register-business-name"
+            className="text-sm font-medium"
+          >
+            Razón Social / Nombre Fantasía
+          </label>
+          <Input
+            id="register-business-name"
+            type="text"
+            autoComplete="organization"
+            value={businessName}
+            onChange={(e) => setBusinessName(e.target.value)}
+          />
+        </div>
+      ) : null}
+      <div className="space-y-2">
+        <label
+          htmlFor="register-contact-whatsapp"
+          className="text-sm font-medium"
+        >
+          Nro. de Contacto / WhatsApp
+        </label>
+        <Input
+          id="register-contact-whatsapp"
+          type="tel"
+          autoComplete="tel"
+          placeholder="Ej: 3854123456"
+          value={contactWhatsapp}
+          onChange={(e) => setContactWhatsapp(e.target.value)}
+        />
       </div>
       {error ? (
         <p className="text-sm text-destructive" role="alert">
