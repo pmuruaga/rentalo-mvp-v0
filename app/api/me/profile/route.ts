@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUserProfile } from "@/lib/currentUserProfile";
 
 async function requireUserId(): Promise<string | NextResponse> {
   const session = await auth.api.getSession({
@@ -17,23 +18,20 @@ async function requireUserId(): Promise<string | NextResponse> {
 }
 
 export async function GET() {
-  const userId = await requireUserId();
-  if (userId instanceof NextResponse) return userId;
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      name: true,
-      email: true,
-      isBusiness: true,
-      businessName: true,
-      contactWhatsapp: true,
-    },
-  });
+  const user = await getCurrentUserProfile();
   if (!user) {
-    return NextResponse.json({ error: "Usuario no encontrado." }, { status: 404 });
+    return NextResponse.json(
+      { error: "Tenés que iniciar sesión para continuar." },
+      { status: 401 }
+    );
   }
-  return NextResponse.json(user);
+  return NextResponse.json({
+    name: user.name,
+    email: user.email,
+    isBusiness: user.isBusiness,
+    businessName: user.businessName,
+    contactWhatsapp: user.contactWhatsapp,
+  });
 }
 
 export async function PATCH(request: Request) {

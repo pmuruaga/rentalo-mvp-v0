@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
   // publishedBy y whatsappNumber siempre se derivan del perfil del usuario,
   // nunca del body.
-  const { publishedBy, whatsappNumber } = await getPublisherInfo(userId);
+  const { publishedBy, whatsappNumber } = await getPublisherInfo();
 
   const product = await prisma.product.create({
     data: {
