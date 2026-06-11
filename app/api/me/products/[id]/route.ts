@@ -42,7 +42,6 @@ export async function PATCH(
   const { id } = await params;
   const ownerCheck = await requireOwnerOfProduct(id);
   if (ownerCheck instanceof NextResponse) return ownerCheck;
-  const userId = ownerCheck;
 
   const body = await request.json();
 
@@ -82,7 +81,7 @@ export async function PATCH(
 
   // Al editar, re-sincroniza publishedBy/whatsappNumber con el perfil actual
   // del dueño; se ignora cualquier valor enviado en el body.
-  const { publishedBy, whatsappNumber } = await getPublisherInfo(userId);
+  const { publishedBy, whatsappNumber } = await getPublisherInfo();
   updateData.publishedBy = publishedBy;
   updateData.whatsappNumber = whatsappNumber;
 

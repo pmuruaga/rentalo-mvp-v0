@@ -54,7 +54,7 @@ export function MyListingsPanel() {
   });
 
   const fetchProfile = async () => {
-    const res = await fetch("/api/me/profile");
+    const res = await fetch("/api/me/profile", { cache: "no-store" });
     if (!res.ok) return;
     const profile = (await res.json()) as {
       name: string;

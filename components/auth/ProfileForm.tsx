@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -19,6 +20,7 @@ export function ProfileForm({
   initialBusinessName,
   initialContactWhatsapp,
 }: ProfileFormProps) {
+  const router = useRouter();
   const [isBusiness, setIsBusiness] = useState(initialIsBusiness);
   const [businessName, setBusinessName] = useState(initialBusinessName);
   const [contactWhatsapp, setContactWhatsapp] = useState(
@@ -47,6 +49,9 @@ export function ProfileForm({
       const data = await res.json();
       setBusinessName(data.businessName ?? "");
       setSuccess(true);
+      // Invalida el cache del router para que otras pantallas server-side
+      // lean los datos actualizados.
+      router.refresh();
     } catch {
       setError("Ocurrió un error. Intentá de nuevo.");
     } finally {
