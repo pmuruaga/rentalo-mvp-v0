@@ -3,10 +3,11 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { serializePrismaProduct } from "@/lib/serializePrismaProduct";
+import { getPublisherInfo } from "@/lib/publisherInfo";
 
 async function requireOwnerOfProduct(
   productId: string
-): Promise<NextResponse | null> {
+): Promise<NextResponse | string> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -31,7 +32,7 @@ async function requireOwnerOfProduct(
     );
   }
 
-  return null;
+  return session.user.id;
 }
 
 export async function PATCH(
@@ -39,8 +40,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const denied = await requireOwnerOfProduct(id);
-  if (denied) return denied;
+  const ownerCheck = await requireOwnerOfProduct(id);
+  if (ownerCheck instanceof NextResponse) return ownerCheck;
+  const userId = ownerCheck;
 
   const body = await request.json();
 
@@ -64,9 +66,6 @@ export async function PATCH(
       body.queIncluye?.length > 0 ? JSON.stringify(body.queIncluye) : null;
   if (body.availableIn != null)
     updateData.availableIn = JSON.stringify(body.availableIn ?? []);
-  if (body.publishedBy != null) updateData.publishedBy = body.publishedBy ?? "";
-  if (body.whatsappNumber !== undefined)
-    updateData.whatsappNumber = body.whatsappNumber?.trim() || null;
   if (body.deliveryMethod !== undefined)
     updateData.deliveryMethod = body.deliveryMethod?.trim() || null;
   if (body.condition !== undefined)
@@ -81,6 +80,12 @@ export async function PATCH(
   if (body.importantInfo !== undefined)
     updateData.importantInfo = body.importantInfo?.trim() || null;
 
+  // Al editar, re-sincroniza publishedBy/whatsappNumber con el perfil actual
+  // del dueño; se ignora cualquier valor enviado en el body.
+  const { publishedBy, whatsappNumber } = await getPublisherInfo(userId);
+  updateData.publishedBy = publishedBy;
+  updateData.whatsappNumber = whatsappNumber;
+
   const product = await prisma.product.update({
     where: { id },
     data: updateData,
@@ -94,8 +99,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const denied = await requireOwnerOfProduct(id);
-  if (denied) return denied;
+  const ownerCheck = await requireOwnerOfProduct(id);
+  if (ownerCheck instanceof NextResponse) return ownerCheck;
 
   await prisma.product.delete({ where: { id } });
   return NextResponse.json({ ok: true });

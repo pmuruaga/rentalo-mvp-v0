@@ -14,6 +14,26 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  user: {
+    additionalFields: {
+      isBusiness: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+        input: true,
+      },
+      businessName: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      contactWhatsapp: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+    },
+  },
   socialProviders: hasGoogleEnv
     ? {
         google: {

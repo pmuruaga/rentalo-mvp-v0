@@ -51,6 +51,9 @@ model User {
   email         String
   emailVerified Boolean   @default(false)
   image         String?
+  isBusiness      Boolean @default(false)
+  businessName    String?
+  contactWhatsapp String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]

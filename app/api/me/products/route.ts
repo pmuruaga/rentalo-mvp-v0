@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { serializePrismaProduct } from "@/lib/serializePrismaProduct";
+import { getPublisherInfo } from "@/lib/publisherInfo";
 
 async function requireUserId(): Promise<string | NextResponse> {
   const session = await auth.api.getSession({
@@ -36,6 +37,10 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
 
+  // publishedBy y whatsappNumber siempre se derivan del perfil del usuario,
+  // nunca del body.
+  const { publishedBy, whatsappNumber } = await getPublisherInfo(userId);
+
   const product = await prisma.product.create({
     data: {
       name: body.name,
@@ -50,8 +55,8 @@ export async function POST(request: NextRequest) {
         ? JSON.stringify(body.queIncluye)
         : null,
       availableIn: JSON.stringify(body.availableIn ?? []),
-      publishedBy: body.publishedBy ?? "",
-      whatsappNumber: body.whatsappNumber?.trim() || null,
+      publishedBy,
+      whatsappNumber,
       deliveryMethod: body.deliveryMethod?.trim() || null,
       condition: body.condition?.trim() || null,
       availabilityNotes: body.availabilityNotes?.trim() || null,

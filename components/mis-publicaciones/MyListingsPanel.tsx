@@ -36,6 +36,11 @@ interface ProductRow {
   importantInfo?: string;
 }
 
+interface PublisherInfo {
+  publishedBy: string;
+  whatsappNumber: string;
+}
+
 export function MyListingsPanel() {
   const router = useRouter();
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -43,6 +48,29 @@ export function MyListingsPanel() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [publisher, setPublisher] = useState<PublisherInfo>({
+    publishedBy: "",
+    whatsappNumber: "",
+  });
+
+  const fetchProfile = async () => {
+    const res = await fetch("/api/me/profile");
+    if (!res.ok) return;
+    const profile = (await res.json()) as {
+      name: string;
+      email: string;
+      isBusiness: boolean;
+      businessName: string | null;
+      contactWhatsapp: string | null;
+    };
+    setPublisher({
+      publishedBy:
+        profile.isBusiness && profile.businessName?.trim()
+          ? profile.businessName.trim()
+          : profile.name || profile.email,
+      whatsappNumber: profile.contactWhatsapp?.trim() ?? "",
+    });
+  };
 
   const fetchProducts = async () => {
     setError(null);
@@ -63,6 +91,7 @@ export function MyListingsPanel() {
 
   useEffect(() => {
     void fetchProducts();
+    void fetchProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar
   }, []);
 
@@ -153,6 +182,7 @@ export function MyListingsPanel() {
               ? products.find((p) => p.id === editingId)
               : undefined
           }
+          publisher={publisher}
           onSave={handleSave}
           onCancel={cancelForm}
         />
