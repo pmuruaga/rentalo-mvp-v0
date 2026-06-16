@@ -13,27 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ProductForm } from "@/components/admin/ProductForm";
+import { getProductCategoryLabel } from "@/lib/productCategory";
+import type { Product as ProductType } from "@/lib/products";
 
-interface ProductRow {
-  id: string;
-  name: string;
-  slug: string;
-  category: string;
-  pricePerDay: number;
-  shortDescription: string;
-  description: string;
-  images: string[];
-  whatsappMessageTemplate: string;
-  queIncluye?: string[];
-  availableIn?: string[];
-  publishedBy?: string;
-  whatsappNumber?: string;
-  deliveryMethod?: string;
-  condition?: string;
-  availabilityNotes?: string;
-  requirements?: string;
-  minimumRentalPeriod?: string;
-  importantInfo?: string;
+interface ProductRow extends ProductType {
 }
 
 interface PublisherInfo {
@@ -113,7 +96,11 @@ export function MyListingsPanel() {
   };
 
   const handleSave = async (
-    data: Partial<ProductRow> & { name: string }
+    data: Partial<ProductRow> & {
+      name: string;
+      categoryId: string;
+      subcategoryId: string;
+    }
   ) => {
     setError(null);
     if (editingId) {
@@ -225,7 +212,7 @@ export function MyListingsPanel() {
                           {p.name}
                         </Link>
                       </TableCell>
-                      <TableCell>{p.category}</TableCell>
+                      <TableCell>{getProductCategoryLabel(p)}</TableCell>
                       <TableCell>
                         ${p.pricePerDay.toLocaleString("es-AR")}
                       </TableCell>

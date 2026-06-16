@@ -4,6 +4,8 @@ export interface ProductCreateInput {
   name: string;
   slug: string;
   category: string;
+  categoryId?: string | null;
+  subcategoryId?: string | null;
   pricePerDay: number;
   shortDescription: string;
   description: string;

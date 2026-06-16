@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getProductBySlug } from "@/lib/productService";
+import { getProductCategoryLabel } from "@/lib/productCategory";
 import { getBaseWhatsAppUrl } from "@/lib/whatsapp";
 import { WhatsAppConsultForm } from "@/components/WhatsAppConsultForm";
 import { ProductViewTracker } from "@/components/ProductViewTracker";
@@ -21,9 +22,6 @@ function formatPrice(price: number): string {
   }).format(price);
 }
 
-function formatCategory(category: string): string {
-  return category.charAt(0).toUpperCase() + category.slice(1);
-}
 
 export async function generateMetadata({
   params,
@@ -82,7 +80,7 @@ export default async function ProductoPage({
         <Card>
           <CardHeader>
             <span className="inline-block w-fit rounded-full bg-[var(--brand-secondary)]/50 px-2 py-1 text-sm font-medium text-[var(--brand-primary)]">
-              {formatCategory(product.category)}
+              {getProductCategoryLabel(product)}
             </span>
             <h1 className="text-2xl font-bold">{product.name}</h1>
             <p className="text-xl font-semibold">

@@ -4,6 +4,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { serializePrismaProduct } from "@/lib/serializePrismaProduct";
 import { getPublisherInfo } from "@/lib/publisherInfo";
+import { getCategoryFieldsForUpdate } from "@/lib/productCategoryResolve";
+
+const productInclude = {
+  categoryRef: true,
+  subcategoryRef: true,
+} as const;
 
 async function requireOwnerOfProduct(
   productId: string
@@ -45,10 +51,19 @@ export async function PATCH(
 
   const body = await request.json();
 
+  const categoryFields = await getCategoryFieldsForUpdate(body);
+  if ("error" in categoryFields) {
+    return NextResponse.json({ error: categoryFields.error }, { status: 400 });
+  }
+
   const updateData: Record<string, unknown> = {};
   if (body.name != null) updateData.name = body.name;
   if (body.slug != null) updateData.slug = body.slug;
-  if (body.category != null) updateData.category = body.category;
+  if (categoryFields.category != null) updateData.category = categoryFields.category;
+  if (categoryFields.categoryId !== undefined)
+    updateData.categoryId = categoryFields.categoryId;
+  if (categoryFields.subcategoryId !== undefined)
+    updateData.subcategoryId = categoryFields.subcategoryId;
   if (body.pricePerDay != null)
     updateData.pricePerDay = Number(body.pricePerDay);
   if (body.shortDescription != null)
@@ -88,6 +103,7 @@ export async function PATCH(
   const product = await prisma.product.update({
     where: { id },
     data: updateData,
+    include: productInclude,
   });
 
   return NextResponse.json(serializePrismaProduct(product));

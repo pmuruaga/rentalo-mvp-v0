@@ -6,11 +6,18 @@ import type {
   ProductCreateInput,
 } from "./ProductRepository";
 
-function toProduct(row: {
+const productInclude = {
+  categoryRef: true,
+  subcategoryRef: true,
+} as const;
+
+type ProductRow = {
   id: string;
   name: string;
   slug: string;
   category: string;
+  categoryId: string | null;
+  subcategoryId: string | null;
   pricePerDay: number;
   shortDescription: string;
   description: string;
@@ -27,12 +34,20 @@ function toProduct(row: {
   minimumRentalPeriod: string | null;
   importantInfo: string | null;
   ownerId: string | null;
-}): Product {
+  categoryRef?: { name: string } | null;
+  subcategoryRef?: { name: string } | null;
+};
+
+function toProduct(row: ProductRow): Product {
   return {
     id: row.id,
     name: row.name,
     slug: row.slug,
     category: row.category,
+    categoryId: row.categoryId,
+    subcategoryId: row.subcategoryId,
+    categoryName: row.categoryRef?.name,
+    subcategoryName: row.subcategoryRef?.name,
     pricePerDay: row.pricePerDay,
     shortDescription: row.shortDescription,
     description: row.description,
@@ -66,7 +81,10 @@ function parseJsonArray(str: string): string[] {
 
 export class PrismaProductRepository implements ProductRepository {
   async list(): Promise<Product[]> {
-    const rows = await prisma.product.findMany({ orderBy: { name: "asc" } });
+    const rows = await prisma.product.findMany({
+      orderBy: { name: "asc" },
+      include: productInclude,
+    });
     return rows.map(toProduct);
   }
 
@@ -74,17 +92,24 @@ export class PrismaProductRepository implements ProductRepository {
     const rows = await prisma.product.findMany({
       where: { ownerId },
       orderBy: { name: "asc" },
+      include: productInclude,
     });
     return rows.map(toProduct);
   }
 
   async getBySlug(slug: string): Promise<Product | null> {
-    const row = await prisma.product.findUnique({ where: { slug } });
+    const row = await prisma.product.findUnique({
+      where: { slug },
+      include: productInclude,
+    });
     return row ? toProduct(row) : null;
   }
 
   async getById(id: string): Promise<Product | null> {
-    const row = await prisma.product.findUnique({ where: { id } });
+    const row = await prisma.product.findUnique({
+      where: { id },
+      include: productInclude,
+    });
     return row ? toProduct(row) : null;
   }
 
@@ -94,6 +119,8 @@ export class PrismaProductRepository implements ProductRepository {
         name: data.name,
         slug: data.slug,
         category: data.category,
+        categoryId: data.categoryId ?? null,
+        subcategoryId: data.subcategoryId ?? null,
         pricePerDay: data.pricePerDay,
         shortDescription: data.shortDescription,
         description: data.description,
@@ -113,6 +140,7 @@ export class PrismaProductRepository implements ProductRepository {
         importantInfo: data.importantInfo?.trim() || null,
         ownerId: data.ownerId ?? null,
       },
+      include: productInclude,
     });
     return toProduct(row);
   }
@@ -125,6 +153,9 @@ export class PrismaProductRepository implements ProductRepository {
     if (data.name != null) updateData.name = data.name;
     if (data.slug != null) updateData.slug = data.slug;
     if (data.category != null) updateData.category = data.category;
+    if (data.categoryId !== undefined) updateData.categoryId = data.categoryId;
+    if (data.subcategoryId !== undefined)
+      updateData.subcategoryId = data.subcategoryId;
     if (data.pricePerDay != null) updateData.pricePerDay = data.pricePerDay;
     if (data.shortDescription != null)
       updateData.shortDescription = data.shortDescription;
@@ -157,6 +188,7 @@ export class PrismaProductRepository implements ProductRepository {
     const row = await prisma.product.update({
       where: { id },
       data: updateData,
+      include: productInclude,
     });
     return toProduct(row);
   }

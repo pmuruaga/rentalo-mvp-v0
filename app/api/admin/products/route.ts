@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serializePrismaProduct } from "@/lib/serializePrismaProduct";
+import { getCategoryFieldsForCreate } from "@/lib/productCategoryResolve";
+
+const productInclude = {
+  categoryRef: true,
+  subcategoryRef: true,
+} as const;
 
 function requireAuth(request: NextRequest): string | NextResponse {
   const key = request.headers.get("x-admin-key");
@@ -18,6 +24,7 @@ export async function GET(request: NextRequest) {
 
   const products = await prisma.product.findMany({
     orderBy: { name: "asc" },
+    include: productInclude,
   });
 
   return NextResponse.json(products.map(serializePrismaProduct));
@@ -29,11 +36,18 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
+  const categoryFields = await getCategoryFieldsForCreate(body);
+  if ("error" in categoryFields) {
+    return NextResponse.json({ error: categoryFields.error }, { status: 400 });
+  }
+
   const product = await prisma.product.create({
     data: {
       name: body.name,
       slug: body.slug,
-      category: body.category,
+      category: categoryFields.category,
+      categoryId: categoryFields.categoryId,
+      subcategoryId: categoryFields.subcategoryId,
       pricePerDay: Number(body.pricePerDay),
       shortDescription: body.shortDescription,
       description: body.description,
@@ -52,6 +66,7 @@ export async function POST(request: NextRequest) {
       minimumRentalPeriod: body.minimumRentalPeriod?.trim() || null,
       importantInfo: body.importantInfo?.trim() || null,
     },
+    include: productInclude,
   });
 
   return NextResponse.json(serializePrismaProduct(product));

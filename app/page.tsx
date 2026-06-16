@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { PromoVideo } from "@/components/PromoVideo";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { listCategoriesWithSubcategories } from "@/lib/productService";
 
 export const metadata = {
   title: "Inicio",
@@ -15,14 +16,7 @@ export const metadata = {
   },
 };
 
-const categoriasDestacadas = [
-  "Eventos Infantiles",
-  "Vehículos",
-  "Vehículos Utilitarios",
-  "Maquinarias Industriales",
-  "Maquinarias Agrícolas",
-  "Inmuebles",
-];
+export const dynamic = "force-dynamic";
 
 const pasos = [
   {
@@ -73,7 +67,8 @@ const faqs = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const categories = await listCategoriesWithSubcategories();
   const whatsappHref = buildWhatsAppUrl(
     "Hola, tengo una consulta sobre los alquileres en Rentalo."
   );
@@ -98,13 +93,13 @@ export default function Home() {
       <section className="mb-20">
         <h2 className="mb-6 text-2xl font-bold">Categorías</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {categoriasDestacadas.map((cat) => (
+          {categories.map((cat) => (
             <Link
-              key={cat}
-              href={`/catalogo?category=${encodeURIComponent(cat)}`}
+              key={cat.id}
+              href={`/catalogo?categoryId=${encodeURIComponent(cat.id)}`}
               className="rounded-lg border border-[var(--brand-secondary)]/40 bg-white p-4 font-medium transition hover:border-[var(--brand-primary)]/40 hover:bg-[var(--brand-secondary)]/10"
             >
-              {cat}
+              {cat.name}
             </Link>
           ))}
         </div>

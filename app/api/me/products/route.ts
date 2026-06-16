@@ -4,6 +4,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { serializePrismaProduct } from "@/lib/serializePrismaProduct";
 import { getPublisherInfo } from "@/lib/publisherInfo";
+import { getCategoryFieldsForCreate } from "@/lib/productCategoryResolve";
+
+const productInclude = {
+  categoryRef: true,
+  subcategoryRef: true,
+} as const;
 
 async function requireUserId(): Promise<string | NextResponse> {
   const session = await auth.api.getSession({
@@ -25,6 +31,7 @@ export async function GET() {
   const products = await prisma.product.findMany({
     where: { ownerId: userId },
     orderBy: { name: "asc" },
+    include: productInclude,
   });
 
   return NextResponse.json(products.map(serializePrismaProduct));
@@ -36,6 +43,10 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
+  const categoryFields = await getCategoryFieldsForCreate(body);
+  if ("error" in categoryFields) {
+    return NextResponse.json({ error: categoryFields.error }, { status: 400 });
+  }
 
   // publishedBy y whatsappNumber siempre se derivan del perfil del usuario,
   // nunca del body.
@@ -45,7 +56,9 @@ export async function POST(request: NextRequest) {
     data: {
       name: body.name,
       slug: body.slug,
-      category: body.category,
+      category: categoryFields.category,
+      categoryId: categoryFields.categoryId,
+      subcategoryId: categoryFields.subcategoryId,
       pricePerDay: Number(body.pricePerDay),
       shortDescription: body.shortDescription,
       description: body.description,
@@ -65,6 +78,7 @@ export async function POST(request: NextRequest) {
       importantInfo: body.importantInfo?.trim() || null,
       ownerId: userId,
     },
+    include: productInclude,
   });
 
   return NextResponse.json(serializePrismaProduct(product));
