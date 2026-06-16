@@ -4,28 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  category: string;
-  pricePerDay: number;
-  shortDescription: string;
-  description: string;
-  images: string[];
-  whatsappMessageTemplate: string;
-  queIncluye?: string[];
-  availableIn?: string[];
-  publishedBy?: string;
-  whatsappNumber?: string;
-  deliveryMethod?: string;
-  condition?: string;
-  availabilityNotes?: string;
-  requirements?: string;
-  minimumRentalPeriod?: string;
-  importantInfo?: string;
-}
+import type { CategoryWithSubcategories } from "@/lib/categoryService";
+import type { Product } from "@/lib/products";
 
 const MAX_IMAGES = 10;
 
@@ -42,7 +22,11 @@ interface ProductFormProps {
    * editable (se derivan del perfil del usuario en el servidor).
    */
   publisher?: PublisherInfo;
-  onSave: (data: Partial<Product> & { name: string }) => Promise<void>;
+  onSave: (data: Partial<Product> & {
+    name: string;
+    categoryId: string;
+    subcategoryId: string;
+  }) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -64,7 +48,12 @@ export function ProductForm({
 }: ProductFormProps) {
   const [name, setName] = useState(product?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
-  const [category, setCategory] = useState(product?.category ?? "");
+  const [categoryId, setCategoryId] = useState(product?.categoryId ?? "");
+  const [subcategoryId, setSubcategoryId] = useState(
+    product?.subcategoryId ?? ""
+  );
+  const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [pricePerDay, setPricePerDay] = useState(
     String(product?.pricePerDay ?? "")
   );
@@ -113,6 +102,40 @@ export function ProductForm({
       setSlug(slugify(name));
     }
   }, [name, product]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/categories");
+        if (!res.ok) return;
+        const data = (await res.json()) as CategoryWithSubcategories[];
+        if (!cancelled) setCategories(data);
+      } finally {
+        if (!cancelled) setCategoriesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    setCategoryId(product?.categoryId ?? "");
+    setSubcategoryId(product?.subcategoryId ?? "");
+  }, [product?.id, product?.categoryId, product?.subcategoryId]);
+
+  const selectedCategory = categories.find((c) => c.id === categoryId);
+  const subcategories = selectedCategory?.subcategories ?? [];
+
+  useEffect(() => {
+    if (
+      subcategoryId &&
+      !subcategories.some((sub) => sub.id === subcategoryId)
+    ) {
+      setSubcategoryId("");
+    }
+  }, [categoryId, subcategories, subcategoryId]);
 
   useEffect(() => {
     setImages(product?.images ?? []);
@@ -249,7 +272,8 @@ export function ProductForm({
       await onSave({
         name,
         slug,
-        category,
+        categoryId,
+        subcategoryId,
         pricePerDay: Number(pricePerDay) || 0,
         shortDescription,
         description,
@@ -308,12 +332,47 @@ export function ProductForm({
 
       <div>
         <label className="mb-1 block text-sm font-medium">Categoría *</label>
-        <Input
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
+        <select
+          value={categoryId}
+          onChange={(e) => {
+            setCategoryId(e.target.value);
+            setSubcategoryId("");
+          }}
           required
-          placeholder="inflables, juegos, etc."
-        />
+          disabled={categoriesLoading}
+          className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">
+            {categoriesLoading ? "Cargando categorías..." : "Seleccioná una categoría"}
+          </option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">Subcategoría *</label>
+        <select
+          value={subcategoryId}
+          onChange={(e) => setSubcategoryId(e.target.value)}
+          required
+          disabled={!categoryId || categoriesLoading}
+          className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        >
+          <option value="">
+            {!categoryId
+              ? "Elegí una categoría primero"
+              : "Seleccioná una subcategoría"}
+          </option>
+          {subcategories.map((sub) => (
+            <option key={sub.id} value={sub.id}>
+              {sub.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>

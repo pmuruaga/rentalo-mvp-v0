@@ -3,6 +3,10 @@ export interface Product {
   name: string;
   slug: string;
   category: string;
+  categoryId?: string | null;
+  subcategoryId?: string | null;
+  categoryName?: string;
+  subcategoryName?: string;
   pricePerDay: number;
   shortDescription: string;
   description: string;

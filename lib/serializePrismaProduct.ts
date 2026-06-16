@@ -18,6 +18,10 @@ export type ProductJson = {
   name: string;
   slug: string;
   category: string;
+  categoryId?: string | null;
+  subcategoryId?: string | null;
+  categoryName?: string;
+  subcategoryName?: string;
   pricePerDay: number;
   shortDescription: string;
   description: string;
@@ -36,12 +40,21 @@ export type ProductJson = {
   ownerId?: string | null;
 };
 
-export function serializePrismaProduct(p: PrismaProduct): ProductJson {
+type PrismaProductWithRelations = PrismaProduct & {
+  categoryRef?: { name: string } | null;
+  subcategoryRef?: { name: string } | null;
+};
+
+export function serializePrismaProduct(p: PrismaProductWithRelations): ProductJson {
   return {
     id: p.id,
     name: p.name,
     slug: p.slug,
     category: p.category,
+    categoryId: p.categoryId,
+    subcategoryId: p.subcategoryId,
+    categoryName: p.categoryRef?.name,
+    subcategoryName: p.subcategoryRef?.name,
     pricePerDay: p.pricePerDay,
     shortDescription: p.shortDescription,
     description: p.description,

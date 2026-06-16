@@ -1,5 +1,9 @@
 import { Suspense } from "react";
-import { listProducts, getCategories } from "@/lib/productService";
+import {
+  listProducts,
+  listCategoriesWithSubcategories,
+} from "@/lib/productService";
+import { getProductCategoryLabel } from "@/lib/productCategory";
 import { CatalogInteractionTracker } from "@/components/CatalogInteractionTracker";
 
 export const metadata = {
@@ -31,21 +35,26 @@ function formatPrice(price: number): string {
   }).format(price);
 }
 
-function formatCategory(category: string): string {
-  return category.charAt(0).toUpperCase() + category.slice(1);
-}
-
 export default async function CatalogoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    category?: string;
+    categoryId?: string;
+    subcategoryId?: string;
+  }>;
 }) {
   const params = await searchParams;
   const products = await listProducts({
     query: params.q,
+    categoryId: params.categoryId || undefined,
+    subcategoryId: params.subcategoryId || undefined,
     category: params.category || undefined,
   });
-  const categories = await getCategories();
+  const categories = await listCategoriesWithSubcategories();
+  const selectedCategory = categories.find((c) => c.id === params.categoryId);
+  const subcategories = selectedCategory?.subcategories ?? [];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -63,14 +72,27 @@ export default async function CatalogoPage({
           className="max-w-xs"
         />
         <select
-          name="category"
-          defaultValue={params.category ?? ""}
+          name="categoryId"
+          defaultValue={params.categoryId ?? ""}
           className="h-9 min-w-[180px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus:ring-2 focus:ring-ring"
         >
           <option value="">Todas las categorías</option>
           {categories.map((c) => (
-            <option key={c} value={c}>
-              {formatCategory(c)}
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <select
+          name="subcategoryId"
+          defaultValue={params.subcategoryId ?? ""}
+          disabled={!params.categoryId}
+          className="h-9 min-w-[180px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        >
+          <option value="">Todas las subcategorías</option>
+          {subcategories.map((sub) => (
+            <option key={sub.id} value={sub.id}>
+              {sub.name}
             </option>
           ))}
         </select>
@@ -102,7 +124,7 @@ export default async function CatalogoPage({
               <CardHeader className="pb-2">
                 <h3 className="font-semibold">{p.name}</h3>
                 <span className="mt-1 inline-block w-fit rounded-full bg-[var(--brand-secondary)]/50 px-2 py-0.5 text-xs font-medium text-[var(--brand-primary)]">
-                  {formatCategory(p.category)}
+                  {getProductCategoryLabel(p)}
                 </span>
               </CardHeader>
               <CardContent className="flex-1 space-y-1 pb-2">

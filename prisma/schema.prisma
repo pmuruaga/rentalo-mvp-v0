@@ -16,11 +16,35 @@ enum RentalStatus {
   CANCELLED
 }
 
+model Category {
+  id            String        @id @default(cuid())
+  name          String        @unique
+  sortOrder     Int           @default(0)
+  subcategories Subcategory[]
+  products      Product[]
+}
+
+model Subcategory {
+  id         String    @id @default(cuid())
+  name       String
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  sortOrder  Int       @default(0)
+  products   Product[]
+
+  @@unique([categoryId, name])
+  @@index([categoryId])
+}
+
 model Product {
   id                     String   @id @default(cuid())
   name                   String
   slug                   String   @unique
   category               String
+  categoryId             String?
+  subcategoryId          String?
+  categoryRef            Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategoryRef         Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
   pricePerDay            Int
   shortDescription       String
   description            String
@@ -43,6 +67,8 @@ model Product {
   updatedAt              DateTime @updatedAt
 
   @@index([ownerId])
+  @@index([categoryId])
+  @@index([subcategoryId])
 }
 
 model User {

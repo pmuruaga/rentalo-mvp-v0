@@ -11,22 +11,28 @@ import { trackEvent } from "@/lib/analytics";
 export function CatalogInteractionTracker() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q")?.trim() ?? "";
+  const categoryId = searchParams.get("categoryId")?.trim() ?? "";
   const category = searchParams.get("category")?.trim() ?? "";
 
   useEffect(() => {
     if (query) {
       trackEvent("catalog_search", {
         query,
-        ...(category ? { category } : {}),
+        ...(categoryId ? { categoryId } : category ? { category } : {}),
       });
     }
-    if (category) {
+    if (categoryId) {
+      trackEvent("catalog_filter_category", {
+        categoryId,
+        ...(query ? { query } : {}),
+      });
+    } else if (category) {
       trackEvent("catalog_filter_category", {
         category,
         ...(query ? { query } : {}),
       });
     }
-  }, [query, category]);
+  }, [query, categoryId, category]);
 
   return null;
 }

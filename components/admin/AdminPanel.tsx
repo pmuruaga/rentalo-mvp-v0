@@ -12,18 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ProductForm } from "./ProductForm";
+import { getProductCategoryLabel } from "@/lib/productCategory";
+import type { Product as ProductType } from "@/lib/products";
 
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  category: string;
-  pricePerDay: number;
-  shortDescription: string;
-  description: string;
-  images: string[];
-  whatsappMessageTemplate: string;
-  queIncluye?: string[];
+interface Product extends ProductType {
 }
 
 interface AdminPanelProps {
@@ -63,7 +55,13 @@ export function AdminPanel({ adminKey }: AdminPanelProps) {
     }
   };
 
-  const handleSave = async (data: Partial<Product> & { name: string }) => {
+  const handleSave = async (
+    data: Partial<Product> & {
+      name: string;
+      categoryId: string;
+      subcategoryId: string;
+    }
+  ) => {
     if (editingId) {
       const res = await fetch(`/api/admin/products/${editingId}`, {
         method: "PATCH",
@@ -142,7 +140,7 @@ export function AdminPanel({ adminKey }: AdminPanelProps) {
                         {p.name}
                       </Link>
                     </TableCell>
-                    <TableCell>{p.category}</TableCell>
+                    <TableCell>{getProductCategoryLabel(p)}</TableCell>
                     <TableCell>${p.pricePerDay.toLocaleString("es-AR")}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
