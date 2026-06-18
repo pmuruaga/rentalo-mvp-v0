@@ -19,11 +19,20 @@ function getAzureImageRemotePattern():
 
 const azureImagePattern = getAzureImageRemotePattern();
 
+const imageRemotePatterns: NonNullable<
+  NextConfig["images"]
+>["remotePatterns"] = [
+  {
+    protocol: "https",
+    hostname: "**.public.blob.vercel-storage.com",
+    pathname: "/**",
+  },
+  ...(azureImagePattern ? [azureImagePattern] : []),
+];
+
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@prisma/client", "prisma"],
-  ...(azureImagePattern
-    ? { images: { remotePatterns: [azureImagePattern] } }
-    : {}),
+  images: { remotePatterns: imageRemotePatterns },
 };
 
 export default nextConfig;

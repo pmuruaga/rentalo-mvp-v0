@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { serializePrismaProduct } from "@/lib/serializePrismaProduct";
 import { getPublisherInfo } from "@/lib/publisherInfo";
 import { getCategoryFieldsForUpdate } from "@/lib/productCategoryResolve";
+import { normalizeProductImages } from "@/lib/productImageUrl";
 
 const productInclude = {
   categoryRef: true,
@@ -70,7 +71,9 @@ export async function PATCH(
     updateData.shortDescription = body.shortDescription;
   if (body.description != null) updateData.description = body.description;
   if (body.images != null) {
-    const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
+    const images = normalizeProductImages(
+      Array.isArray(body.images) ? body.images : []
+    );
     updateData.images = JSON.stringify(images);
   }
   if (body.whatsappMessageTemplate != null)

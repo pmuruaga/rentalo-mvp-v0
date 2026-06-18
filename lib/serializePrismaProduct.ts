@@ -1,13 +1,14 @@
 import type { Product as PrismaProduct } from "@prisma/client";
+import { normalizeProductImages } from "@/lib/productImageUrl";
 
 export function parseImagesJson(raw: string): string[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter((u): u is string => typeof u === "string" && u.trim().length > 0)
-      .slice(0, 10);
+    return normalizeProductImages(
+      parsed.filter((u): u is string => typeof u === "string")
+    );
   } catch {
     return [];
   }

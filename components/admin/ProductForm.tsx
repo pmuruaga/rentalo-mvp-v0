@@ -128,14 +128,41 @@ export function ProductForm({
   const selectedCategory = categories.find((c) => c.id === categoryId);
   const subcategories = selectedCategory?.subcategories ?? [];
 
+  // Productos legacy: solo tienen category string "Categoría · Subcategoría".
   useEffect(() => {
+    if (categoriesLoading || categories.length === 0 || !product) return;
+    if (categoryId) return;
+
+    const sep = " · ";
+    const idx = product.category.indexOf(sep);
+    if (idx === -1) return;
+
+    const catName = product.category.slice(0, idx).trim();
+    const subName = product.category.slice(idx + sep.length).trim();
+    const cat = categories.find((c) => c.name === catName);
+    if (!cat) return;
+
+    setCategoryId(cat.id);
+    const sub = cat.subcategories.find((s) => s.name === subName);
+    if (sub) setSubcategoryId(sub.id);
+  }, [categoriesLoading, categories, product, categoryId]);
+
+  // Solo limpiar subcategoría inválida cuando las categorías ya cargaron.
+  useEffect(() => {
+    if (categoriesLoading || !categoryId || !selectedCategory) return;
     if (
       subcategoryId &&
       !subcategories.some((sub) => sub.id === subcategoryId)
     ) {
       setSubcategoryId("");
     }
-  }, [categoryId, subcategories, subcategoryId]);
+  }, [
+    categoryId,
+    subcategories,
+    subcategoryId,
+    categoriesLoading,
+    selectedCategory,
+  ]);
 
   useEffect(() => {
     setImages(product?.images ?? []);

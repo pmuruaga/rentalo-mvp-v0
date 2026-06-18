@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { resolveProductImageSrc } from "@/lib/productImageUrl";
 
 const PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='18' x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle'%3ESin imagen%3C/text%3E%3C/svg%3E";
@@ -14,8 +15,9 @@ interface ProductImageProps {
 
 export function ProductImage({ src, alt, className }: ProductImageProps) {
   const [error, setError] = useState(false);
+  const resolvedSrc = resolveProductImageSrc(src);
 
-  if (error || !src) {
+  if (error || !resolvedSrc) {
     return (
       <div
         className={`absolute inset-0 ${className ?? ""}`}
@@ -30,7 +32,7 @@ export function ProductImage({ src, alt, className }: ProductImageProps) {
 
   return (
     <Image
-      src={src}
+      src={resolvedSrc}
       alt={alt}
       fill
       className={`object-cover ${className ?? ""}`}
