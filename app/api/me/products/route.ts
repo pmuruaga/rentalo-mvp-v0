@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { serializePrismaProduct } from "@/lib/serializePrismaProduct";
 import { getPublisherInfo } from "@/lib/publisherInfo";
 import { getCategoryFieldsForCreate } from "@/lib/productCategoryResolve";
+import { normalizeProductImages } from "@/lib/productImageUrl";
 
 const productInclude = {
   categoryRef: true,
@@ -42,7 +43,9 @@ export async function POST(request: NextRequest) {
   if (userId instanceof NextResponse) return userId;
 
   const body = await request.json();
-  const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
+  const images = normalizeProductImages(
+    Array.isArray(body.images) ? body.images : []
+  );
   const categoryFields = await getCategoryFieldsForCreate(body);
   if ("error" in categoryFields) {
     return NextResponse.json({ error: categoryFields.error }, { status: 400 });
