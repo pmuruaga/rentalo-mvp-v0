@@ -12,12 +12,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { rentalStatusLabel } from "@/lib/rentalLabels";
 
 interface Row {
   id: string;
   status: string;
   createdAt: string;
+  hasSubmittedReview: boolean;
   product: { id: string; name: string; slug: string };
   renter: { id: string; name: string; email: string };
 }
@@ -28,6 +30,7 @@ export function ReceivedRequestsPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [reviewOpenId, setReviewOpenId] = useState<string | null>(null);
 
   const load = async () => {
     setError(null);
@@ -73,7 +76,15 @@ export function ReceivedRequestsPanel() {
       return;
     }
     await load();
+    if (status === "RETURN_CONFIRMED") {
+      setReviewOpenId(id);
+    }
     setBusyId(null);
+  };
+
+  const onReviewSubmitted = async (id: string) => {
+    setReviewOpenId(null);
+    await load();
   };
 
   if (loading) {
@@ -149,6 +160,27 @@ export function ReceivedRequestsPanel() {
                   >
                     {busyId === r.id ? "…" : "Confirmar devolución en condiciones"}
                   </Button>
+                ) : r.status === "RETURN_CONFIRMED" ? (
+                  r.hasSubmittedReview ? (
+                    <span className="text-xs text-muted-foreground">
+                      Calificación enviada
+                    </span>
+                  ) : reviewOpenId === r.id ? (
+                    <ReviewForm
+                      rentalId={r.id}
+                      targetName={r.renter.name}
+                      onSubmitted={() => void onReviewSubmitted(r.id)}
+                    />
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setReviewOpenId(r.id)}
+                    >
+                      Calificar al locatario
+                    </Button>
+                  )
                 ) : (
                   <span className="text-xs text-muted-foreground">—</span>
                 )}

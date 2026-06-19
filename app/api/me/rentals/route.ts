@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { RentalStatus } from "@prisma/client";
+import { RentalStatus, ReviewType } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -32,6 +32,12 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     include: {
       product: { select: { id: true, name: true, slug: true } },
+      owner: { select: { id: true, name: true } },
+      reviews: {
+        where: { type: ReviewType.RENTER_TO_OWNER },
+        select: { id: true },
+        take: 1,
+      },
     },
   });
 
@@ -44,6 +50,8 @@ export async function GET() {
       updatedAt: r.updatedAt.toISOString(),
       returnedAt: r.returnedAt?.toISOString() ?? null,
       product: r.product,
+      owner: r.owner,
+      hasSubmittedReview: r.reviews.length > 0,
     }))
   );
 }

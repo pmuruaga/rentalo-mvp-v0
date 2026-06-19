@@ -9,7 +9,8 @@
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:clean-products": "tsx prisma/clean-products.ts"
   },
   "dependencies": {
     "@azure/storage-blob": "^12.31.0",
