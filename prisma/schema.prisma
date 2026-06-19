@@ -16,6 +16,11 @@ enum RentalStatus {
   CANCELLED
 }
 
+enum ReviewType {
+  RENTER_TO_OWNER
+  OWNER_TO_RENTER
+}
+
 model Category {
   id            String        @id @default(cuid())
   name          String        @unique
@@ -63,6 +68,7 @@ model Product {
   ownerId                String?
   owner                  User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   rentals                Rental[]
+  reviews                Review[]
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
@@ -87,6 +93,8 @@ model User {
   products      Product[]
   rentalsAsRenter Rental[] @relation("RentalRenter")
   rentalsAsOwner  Rental[] @relation("RentalOwner")
+  reviewsGiven    Review[] @relation("ReviewReviewer")
+  reviewsReceived Review[] @relation("ReviewReviewedUser")
 
   @@unique([email])
   @@map("user")
@@ -106,12 +114,36 @@ model Rental {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   renter  User    @relation("RentalRenter", fields: [renterId], references: [id], onDelete: Cascade)
   owner   User    @relation("RentalOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  reviews Review[]
 
   @@index([productId])
   @@index([renterId])
   @@index([ownerId])
   @@index([status])
   @@map("rental")
+}
+
+model Review {
+  id             String     @id @default(cuid())
+  rentalId       String
+  reviewerId     String
+  reviewedUserId String
+  productId      String
+  rating         Int
+  comment        String?
+  type           ReviewType
+  createdAt      DateTime   @default(now())
+
+  rental       Rental  @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  reviewer     User    @relation("ReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewedUser User    @relation("ReviewReviewedUser", fields: [reviewedUserId], references: [id], onDelete: Cascade)
+  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([rentalId, type])
+  @@index([reviewerId])
+  @@index([reviewedUserId])
+  @@index([productId])
+  @@map("review")
 }
 
 model Session {

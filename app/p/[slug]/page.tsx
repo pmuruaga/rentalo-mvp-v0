@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { siteName } from "@/lib/site";
 import { RequestRentalBlock } from "@/components/rentals/RequestRentalBlock";
+import { StarRating } from "@/components/reviews/StarRating";
+import { getUserAverageRating } from "@/lib/reviews";
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("es-AR", {
@@ -65,6 +67,9 @@ export default async function ProductoPage({
   });
   const currentUserId = session?.user?.id ?? null;
 
+  const ownerRating =
+    product.ownerId != null ? await getUserAverageRating(product.ownerId) : null;
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <ProductViewTracker productSlug={slug} productName={product.name} />
@@ -92,7 +97,25 @@ export default async function ProductoPage({
                   <span>Disponible en: {product.availableIn.join(", ")}</span>
                 ) : null}
                 {product.publishedBy ? (
-                  <span>Publicado por {product.publishedBy}</span>
+                  <span>
+                    Publicado por {product.publishedBy}
+                    {ownerRating ? (
+                      <>
+                        {" "}
+                        ·{" "}
+                        <span className="inline-flex items-center gap-1">
+                          <StarRating
+                            value={Math.round(ownerRating.average)}
+                            readOnly
+                            size="sm"
+                          />
+                          <span>
+                            {ownerRating.average.toFixed(1)} ({ownerRating.count})
+                          </span>
+                        </span>
+                      </>
+                    ) : null}
+                  </span>
                 ) : null}
               </div>
             )}

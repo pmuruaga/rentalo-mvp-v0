@@ -12,13 +12,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { rentalStatusLabel } from "@/lib/rentalLabels";
 
 interface Row {
   id: string;
   status: string;
   createdAt: string;
+  hasSubmittedReview: boolean;
   product: { id: string; name: string; slug: string };
+  owner: { id: string; name: string } | null;
+}
+
+function canRenterReview(status: string) {
+  return status === "RETURNED" || status === "RETURN_CONFIRMED";
 }
 
 export function MyRentalsPanel() {
@@ -27,6 +34,7 @@ export function MyRentalsPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [reviewOpenId, setReviewOpenId] = useState<string | null>(null);
 
   const load = async () => {
     setError(null);
@@ -69,7 +77,13 @@ export function MyRentalsPanel() {
       return;
     }
     await load();
+    setReviewOpenId(id);
     setBusyId(null);
+  };
+
+  const onReviewSubmitted = async (id: string) => {
+    setReviewOpenId(null);
+    await load();
   };
 
   if (loading) {
@@ -124,6 +138,27 @@ export function MyRentalsPanel() {
                   >
                     {busyId === r.id ? "…" : "Marcar como devuelto"}
                   </Button>
+                ) : canRenterReview(r.status) ? (
+                  r.hasSubmittedReview ? (
+                    <span className="text-xs text-muted-foreground">
+                      Calificación enviada
+                    </span>
+                  ) : reviewOpenId === r.id ? (
+                    <ReviewForm
+                      rentalId={r.id}
+                      targetName={r.owner?.name ?? "el dueño"}
+                      onSubmitted={() => void onReviewSubmitted(r.id)}
+                    />
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setReviewOpenId(r.id)}
+                    >
+                      Calificar al dueño
+                    </Button>
+                  )
                 ) : (
                   <span className="text-xs text-muted-foreground">—</span>
                 )}
