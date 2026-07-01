@@ -2,10 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { AuthButtons } from "@/components/auth/AuthButtons";
 import { MisPublicacionesLink } from "@/components/nav/MisPublicacionesLink";
-import { AdminLink } from "@/components/nav/AdminLink";
 import { RentalNavLinks } from "@/components/nav/RentalNavLinks";
+import { isCurrentUserAdmin } from "@/lib/admin";
 
-export function Header() {
+export async function Header() {
+  const showAdminLink = await isCurrentUserAdmin();
+
   return (
     <header className="border-b bg-background">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-4">
@@ -30,7 +32,14 @@ export function Header() {
               Catálogo
             </Link>
             <MisPublicacionesLink />
-            <AdminLink />
+            {showAdminLink ? (
+              <Link
+                href="/admin/publicaciones"
+                className="text-sm font-medium text-[var(--brand-primary)] hover:underline"
+              >
+                Admin
+              </Link>
+            ) : null}
             <RentalNavLinks />
           </nav>
           <AuthButtons />

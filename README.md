@@ -36,3 +36,6 @@ Si npm install ya terminó, ejecutá en este orden:
 npx prisma db push
 npm run db:seed
 npm run dev
+
+Ahora en el admin te deja ver todas las publicaciones y podes eliminar si alguna no esta buena...
+https://rentalo-ar.com/admin
