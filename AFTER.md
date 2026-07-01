@@ -24,3 +24,7 @@ Rentalo Path
 -Agregar Feature de Alquileres por usuario
 
 -Agregar Feature de Dejar Review
+
+NOTAS:
+Para promover un user como admin...
+npm run admin:promote -- otro@email.com
