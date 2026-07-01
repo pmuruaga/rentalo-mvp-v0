@@ -7,6 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ProductStatus {
+  ACTIVE
+  PAUSED
+  DISABLED
+}
+
 enum RentalStatus {
   REQUESTED
   APPROVED
@@ -67,6 +78,7 @@ model Product {
   importantInfo          String?
   ownerId                String?
   owner                  User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  status                 ProductStatus @default(ACTIVE)
   rentals                Rental[]
   reviews                Review[]
   createdAt              DateTime @default(now())
@@ -75,6 +87,7 @@ model Product {
   @@index([ownerId])
   @@index([categoryId])
   @@index([subcategoryId])
+  @@index([status])
 }
 
 model User {
@@ -83,6 +96,7 @@ model User {
   email         String
   emailVerified Boolean   @default(false)
   image         String?
+  role            UserRole  @default(USER)
   isBusiness      Boolean @default(false)
   businessName    String?
   contactWhatsapp String?

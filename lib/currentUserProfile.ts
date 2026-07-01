@@ -6,6 +6,7 @@ export type CurrentUserProfile = {
   id: string;
   name: string;
   email: string;
+  role: string;
   isBusiness: boolean;
   businessName: string | null;
   contactWhatsapp: string | null;
@@ -28,6 +29,7 @@ export async function getCurrentUserProfile(): Promise<CurrentUserProfile | null
       id: true,
       name: true,
       email: true,
+      role: true,
       isBusiness: true,
       businessName: true,
       contactWhatsapp: true,
