@@ -28,6 +28,7 @@ export async function GET() {
   return NextResponse.json({
     name: user.name,
     email: user.email,
+    role: user.role,
     isBusiness: user.isBusiness,
     businessName: user.businessName,
     contactWhatsapp: user.contactWhatsapp,

@@ -10,7 +10,8 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "db:clean-products": "tsx prisma/clean-products.ts"
+    "db:clean-products": "tsx prisma/clean-products.ts",
+    "admin:promote": "tsx prisma/promote-admin.ts"
   },
   "dependencies": {
     "@azure/storage-blob": "^12.31.0",

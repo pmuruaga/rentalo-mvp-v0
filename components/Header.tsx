@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { AuthButtons } from "@/components/auth/AuthButtons";
 import { MisPublicacionesLink } from "@/components/nav/MisPublicacionesLink";
+import { AdminLink } from "@/components/nav/AdminLink";
 import { RentalNavLinks } from "@/components/nav/RentalNavLinks";
 
 export function Header() {
@@ -29,6 +30,7 @@ export function Header() {
               Catálogo
             </Link>
             <MisPublicacionesLink />
+            <AdminLink />
             <RentalNavLinks />
           </nav>
           <AuthButtons />

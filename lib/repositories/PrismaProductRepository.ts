@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { ProductStatus } from "@prisma/client";
 import { parseImagesJson } from "@/lib/serializePrismaProduct";
 import type { Product } from "@/lib/products";
 import type {
@@ -34,6 +35,7 @@ type ProductRow = {
   minimumRentalPeriod: string | null;
   importantInfo: string | null;
   ownerId: string | null;
+  status: string;
   categoryRef?: { name: string } | null;
   subcategoryRef?: { name: string } | null;
 };
@@ -66,6 +68,7 @@ function toProduct(row: ProductRow): Product {
     minimumRentalPeriod: row.minimumRentalPeriod?.trim() || undefined,
     importantInfo: row.importantInfo?.trim() || undefined,
     ownerId: row.ownerId ?? null,
+    status: row.status,
   };
 }
 
@@ -82,6 +85,7 @@ function parseJsonArray(str: string): string[] {
 export class PrismaProductRepository implements ProductRepository {
   async list(): Promise<Product[]> {
     const rows = await prisma.product.findMany({
+      where: { status: ProductStatus.ACTIVE },
       orderBy: { name: "asc" },
       include: productInclude,
     });
@@ -98,8 +102,8 @@ export class PrismaProductRepository implements ProductRepository {
   }
 
   async getBySlug(slug: string): Promise<Product | null> {
-    const row = await prisma.product.findUnique({
-      where: { slug },
+    const row = await prisma.product.findFirst({
+      where: { slug, status: ProductStatus.ACTIVE },
       include: productInclude,
     });
     return row ? toProduct(row) : null;

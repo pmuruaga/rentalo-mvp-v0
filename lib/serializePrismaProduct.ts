@@ -39,6 +39,7 @@ export type ProductJson = {
   minimumRentalPeriod?: string;
   importantInfo?: string;
   ownerId?: string | null;
+  status?: string;
 };
 
 type PrismaProductWithRelations = PrismaProduct & {
@@ -72,5 +73,6 @@ export function serializePrismaProduct(p: PrismaProductWithRelations): ProductJs
     minimumRentalPeriod: p.minimumRentalPeriod || undefined,
     importantInfo: p.importantInfo || undefined,
     ownerId: p.ownerId ?? null,
+    status: p.status,
   };
 }
