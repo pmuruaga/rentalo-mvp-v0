@@ -24,6 +24,19 @@ interface PublisherInfo {
   whatsappNumber: string;
 }
 
+function statusLabel(status: string | undefined): string {
+  switch (status) {
+    case "ACTIVE":
+      return "Activa";
+    case "PAUSED":
+      return "Pausada";
+    case "DISABLED":
+      return "Desactivada";
+    default:
+      return status ?? "—";
+  }
+}
+
 export function MyListingsPanel() {
   const router = useRouter();
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -31,6 +44,7 @@ export function MyListingsPanel() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
   const [publisher, setPublisher] = useState<PublisherInfo>({
     publishedBy: "",
     whatsappNumber: "",
@@ -77,6 +91,28 @@ export function MyListingsPanel() {
     void fetchProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar
   }, []);
+
+  const handleStatusChange = async (id: string, status: "ACTIVE" | "PAUSED") => {
+    setError(null);
+    setUpdatingStatusId(id);
+    const res = await fetch(`/api/me/products/${id}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    setUpdatingStatusId(null);
+    if (res.status === 401) {
+      router.replace("/login?callbackUrl=%2Fmis-publicaciones");
+      return;
+    }
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(data.error ?? "No se pudo actualizar el estado.");
+      return;
+    }
+    const updated = (await res.json()) as ProductRow;
+    setProducts((p) => p.map((x) => (x.id === id ? updated : x)));
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Eliminar esta publicación?")) return;
@@ -197,6 +233,7 @@ export function MyListingsPanel() {
                     <TableHead>Nombre</TableHead>
                     <TableHead>Categoría</TableHead>
                     <TableHead>Precio/día</TableHead>
+                    <TableHead>Estado</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -216,8 +253,34 @@ export function MyListingsPanel() {
                       <TableCell>
                         ${p.pricePerDay.toLocaleString("es-AR")}
                       </TableCell>
+                      <TableCell>{statusLabel(p.status)}</TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {p.status === "DISABLED" ? (
+                            <span className="text-sm text-muted-foreground">
+                              Publicación desactivada por administración
+                            </span>
+                          ) : null}
+                          {p.status === "ACTIVE" ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={updatingStatusId === p.id}
+                              onClick={() => void handleStatusChange(p.id, "PAUSED")}
+                            >
+                              {updatingStatusId === p.id ? "…" : "Pausar"}
+                            </Button>
+                          ) : null}
+                          {p.status === "PAUSED" ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={updatingStatusId === p.id}
+                              onClick={() => void handleStatusChange(p.id, "ACTIVE")}
+                            >
+                              {updatingStatusId === p.id ? "…" : "Reactivar"}
+                            </Button>
+                          ) : null}
                           <Button
                             variant="outline"
                             size="sm"

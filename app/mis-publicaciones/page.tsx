@@ -23,8 +23,8 @@ export default async function MisPublicacionesPage() {
         Mis publicaciones
       </h1>
       <p className="mb-6 text-sm text-muted-foreground">
-        Solo vos podés editar o eliminar estos productos. El catálogo público
-        sigue mostrando todos los productos.
+        Solo vos podés editar, pausar o eliminar estos productos. El catálogo
+        público muestra solo las publicaciones activas.
       </p>
       <MyListingsPanel />
     </div>
