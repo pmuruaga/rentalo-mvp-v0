@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { RentalDateFields } from "@/components/rentals/RentalDateFields";
+import { validateRentalDateRange } from "@/lib/rentalDates";
 
 type Props = {
   productId: string;
@@ -20,13 +22,21 @@ export function RequestRentalBlock({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const callbackUrl = encodeURIComponent(`/p/${productSlug}`);
   const isOwner = Boolean(
     currentUserId && ownerId && currentUserId === ownerId
   );
+  const validation = validateRentalDateRange(dateFrom, dateTo, {
+    required: true,
+  });
+  const canSubmit = validation.valid;
 
   const handleRequest = async () => {
+    if (!canSubmit) return;
+
     setError(null);
     setMessage(null);
     setLoading(true);
@@ -34,7 +44,7 @@ export function RequestRentalBlock({
       const res = await fetch("/api/me/rentals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({ productId, startDate: dateFrom, endDate: dateTo }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
@@ -84,11 +94,20 @@ export function RequestRentalBlock({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
+      <RentalDateFields
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        required
+        onChange={({ dateFrom: nextFrom, dateTo: nextTo }) => {
+          setDateFrom(nextFrom);
+          setDateTo(nextTo);
+        }}
+      />
       <Button
         type="button"
         onClick={() => void handleRequest()}
-        disabled={loading}
+        disabled={loading || !canSubmit}
       >
         {loading ? "Enviando…" : "Solicitar alquiler"}
       </Button>

@@ -6,6 +6,7 @@ interface WhatsAppButtonProps {
   href: string;
   children?: React.ReactNode;
   className?: string;
+  disabled?: boolean;
   /** Evento GA4 opcional al hacer click (antes de abrir WhatsApp). */
   analyticsEvent?: string;
   analyticsParams?: Record<string, unknown>;
@@ -15,16 +16,26 @@ export function WhatsAppButton({
   href,
   children,
   className,
+  disabled = false,
   analyticsEvent,
   analyticsParams,
 }: WhatsAppButtonProps) {
   return (
     <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`inline-flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-3 font-semibold text-white transition hover:bg-[#20BD5A] ${className ?? ""}`}
-      onClick={() => {
+      href={disabled ? undefined : href}
+      target={disabled ? undefined : "_blank"}
+      rel={disabled ? undefined : "noopener noreferrer"}
+      aria-disabled={disabled}
+      className={`inline-flex items-center gap-2 rounded-full px-6 py-3 font-semibold text-white transition ${
+        disabled
+          ? "pointer-events-none cursor-not-allowed bg-[#25D366]/50"
+          : "bg-[#25D366] hover:bg-[#20BD5A]"
+      } ${className ?? ""}`}
+      onClick={(e) => {
+        if (disabled) {
+          e.preventDefault();
+          return;
+        }
         if (analyticsEvent) {
           trackEvent(analyticsEvent, analyticsParams);
         }

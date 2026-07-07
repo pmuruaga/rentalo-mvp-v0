@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { RentalStatus, ReviewType } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { validateRentalDateRange } from "@/lib/rentalDates";
 
 const ACTIVE_STATUSES: RentalStatus[] = [
   RentalStatus.REQUESTED,
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
 
-  let body: { productId?: string };
+  let body: { productId?: string; startDate?: string; endDate?: string };
   try {
     body = await request.json();
   } catch {
@@ -70,6 +71,19 @@ export async function POST(request: NextRequest) {
   const productId = typeof body.productId === "string" ? body.productId.trim() : "";
   if (!productId) {
     return NextResponse.json({ error: "Falta productId." }, { status: 400 });
+  }
+
+  const startDate =
+    typeof body.startDate === "string" ? body.startDate.trim() : "";
+  const endDate = typeof body.endDate === "string" ? body.endDate.trim() : "";
+  const dateValidation = validateRentalDateRange(startDate, endDate, {
+    required: true,
+  });
+  if (!dateValidation.valid) {
+    return NextResponse.json(
+      { error: dateValidation.message ?? "Fechas de alquiler inválidas." },
+      { status: 400 }
+    );
   }
 
   const product = await prisma.product.findUnique({
