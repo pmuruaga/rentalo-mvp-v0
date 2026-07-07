@@ -198,7 +198,7 @@ export default async function ProductoPage({
               </div>
             )}
 
-            <div className="border-t pt-6">
+            <div className="border-t pt-6 pb-12">
               <h2 className="mb-3 font-semibold">Solicitar alquiler</h2>
               <RequestRentalBlock
                 productId={product.id}
@@ -208,8 +208,20 @@ export default async function ProductoPage({
               />
             </div>
 
-            <div className="border-t pt-6">
-              <h2 className="mb-4 font-semibold">Consultar disponibilidad</h2>
+            <div className="border-t pt-10 pb-2">
+              <div className="mb-8 space-y-2 text-sm text-muted-foreground">
+                <p>¿Tenés dudas antes de alquilar?</p>
+                <p>
+                  Podés comunicarte directamente con el propietario para
+                  consultar disponibilidad, hacer preguntas, coordinar horarios
+                  o despejar cualquier duda antes de enviar una solicitud.
+                </p>
+              </div>
+              <h2 className="mb-2 font-semibold">Consultar por WhatsApp</h2>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Las fechas son opcionales y solo ayudan a generar un mensaje más
+                claro.
+              </p>
               <WhatsAppConsultForm
                 productName={product.name}
                 productSlug={slug}

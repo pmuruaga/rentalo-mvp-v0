@@ -111,15 +111,16 @@ export function RequestRentalBlock({
       >
         {loading ? "Enviando…" : "Solicitar alquiler"}
       </Button>
+      <p className="text-xs text-muted-foreground">
+        Al solicitar el alquiler se enviará una solicitud dentro de Rentalo. El
+        propietario podrá aceptarla o rechazarla.
+      </p>
       {error ? (
         <p className="text-sm text-destructive">{error}</p>
       ) : null}
       {message ? (
         <p className="text-sm text-muted-foreground">{message}</p>
       ) : null}
-      <p className="text-xs text-muted-foreground">
-        También podés escribir por WhatsApp para coordinar fechas.
-      </p>
     </div>
   );
 }
