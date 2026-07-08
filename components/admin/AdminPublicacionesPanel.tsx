@@ -11,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ProductForm } from "@/components/admin/ProductForm";
+import type { Product } from "@/lib/products";
 
 type AdminProductRow = {
   id: string;
@@ -18,8 +20,10 @@ type AdminProductRow = {
   status?: string;
   publishedBy?: string;
   categoryLabel: string;
+  ownerId?: string | null;
   ownerName: string | null;
   ownerEmail: string | null;
+  assignedOwnerEmail?: string | null;
 };
 
 function statusLabel(status: string | undefined): string {
@@ -39,7 +43,14 @@ function publisherLabel(row: AdminProductRow): string {
   if (row.publishedBy?.trim()) return row.publishedBy;
   if (row.ownerName?.trim()) return row.ownerName;
   if (row.ownerEmail) return row.ownerEmail;
+  if (row.assignedOwnerEmail) return row.assignedOwnerEmail;
   return "—";
+}
+
+function assignmentLabel(row: AdminProductRow): string {
+  if (row.ownerId) return "Asignada";
+  if (row.assignedOwnerEmail) return "Pendiente de usuario";
+  return "Sin asignar";
 }
 
 export function AdminPublicacionesPanel() {
@@ -48,6 +59,8 @@ export function AdminPublicacionesPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const fetchProducts = async () => {
     setError(null);
@@ -108,17 +121,85 @@ export function AdminPublicacionesPanel() {
     }
   };
 
+  const handleCreateAssisted = async (
+    data: Partial<Product> & {
+      name: string;
+      categoryId: string;
+      subcategoryId: string;
+      assignedOwnerEmail?: string;
+    }
+  ) => {
+    setCreateError(null);
+    const res = await fetch("/api/admin/publicaciones", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.status === 401) {
+      router.replace("/login?callbackUrl=%2Fadmin%2Fpublicaciones");
+      return;
+    }
+    if (res.status === 403) {
+      router.replace("/");
+      return;
+    }
+    if (!res.ok) {
+      const body = (await res.json()) as { error?: string };
+      setCreateError(body.error ?? "No se pudo crear la publicación.");
+      return;
+    }
+    const created = (await res.json()) as AdminProductRow;
+    setProducts((prev) =>
+      [...prev, created].sort((a, b) => a.name.localeCompare(b.name))
+    );
+    setShowCreateForm(false);
+  };
+
   if (loading) {
     return <p className="text-muted-foreground">Cargando publicaciones…</p>;
   }
 
+  if (showCreateForm) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-2xl font-bold">Admin · Publicaciones</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Creá una publicación y asignalá al futuro publicador por email.
+          </p>
+        </div>
+        {createError ? (
+          <p className="text-sm text-destructive" role="alert">
+            {createError}
+          </p>
+        ) : null}
+        <div className="rounded-lg border p-4">
+          <ProductForm
+            assistedPublication
+            onSave={handleCreateAssisted}
+            onCancel={() => {
+              setShowCreateForm(false);
+              setCreateError(null);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">Admin · Publicaciones</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Revisá y desactivá publicaciones del catálogo.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Admin · Publicaciones</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Revisá, creá publicaciones asistidas y desactivá publicaciones del
+            catálogo.
+          </p>
+        </div>
+        <Button type="button" onClick={() => setShowCreateForm(true)}>
+          Crear publicación asistida
+        </Button>
       </div>
 
       {error ? (
@@ -138,6 +219,7 @@ export function AdminPublicacionesPanel() {
               <TableRow>
                 <TableHead>Título</TableHead>
                 <TableHead>Publicado por</TableHead>
+                <TableHead>Asignación</TableHead>
                 <TableHead>Categoría</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
@@ -148,6 +230,14 @@ export function AdminPublicacionesPanel() {
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.name}</TableCell>
                   <TableCell>{publisherLabel(p)}</TableCell>
+                  <TableCell>
+                    <span className="text-sm">{assignmentLabel(p)}</span>
+                    {p.assignedOwnerEmail && !p.ownerId ? (
+                      <p className="text-xs text-muted-foreground">
+                        {p.assignedOwnerEmail}
+                      </p>
+                    ) : null}
+                  </TableCell>
                   <TableCell>{p.categoryLabel}</TableCell>
                   <TableCell>{statusLabel(p.status)}</TableCell>
                   <TableCell className="text-right">

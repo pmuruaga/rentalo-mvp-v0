@@ -35,6 +35,7 @@ type ProductRow = {
   minimumRentalPeriod: string | null;
   importantInfo: string | null;
   ownerId: string | null;
+  assignedOwnerEmail: string | null;
   status: string;
   categoryRef?: { name: string } | null;
   subcategoryRef?: { name: string } | null;
@@ -68,6 +69,7 @@ function toProduct(row: ProductRow): Product {
     minimumRentalPeriod: row.minimumRentalPeriod?.trim() || undefined,
     importantInfo: row.importantInfo?.trim() || undefined,
     ownerId: row.ownerId ?? null,
+    assignedOwnerEmail: row.assignedOwnerEmail ?? null,
     status: row.status,
   };
 }
@@ -143,6 +145,7 @@ export class PrismaProductRepository implements ProductRepository {
         minimumRentalPeriod: data.minimumRentalPeriod?.trim() || null,
         importantInfo: data.importantInfo?.trim() || null,
         ownerId: data.ownerId ?? null,
+        assignedOwnerEmail: data.assignedOwnerEmail ?? null,
       },
       include: productInclude,
     });
@@ -188,6 +191,8 @@ export class PrismaProductRepository implements ProductRepository {
     if (data.importantInfo !== undefined)
       updateData.importantInfo = data.importantInfo?.trim() || null;
     if (data.ownerId !== undefined) updateData.ownerId = data.ownerId;
+    if (data.assignedOwnerEmail !== undefined)
+      updateData.assignedOwnerEmail = data.assignedOwnerEmail;
 
     const row = await prisma.product.update({
       where: { id },

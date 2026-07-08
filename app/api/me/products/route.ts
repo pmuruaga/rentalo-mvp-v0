@@ -6,6 +6,8 @@ import { serializePrismaProduct } from "@/lib/serializePrismaProduct";
 import { getPublisherInfo } from "@/lib/publisherInfo";
 import { getCategoryFieldsForCreate } from "@/lib/productCategoryResolve";
 import { normalizeProductImages } from "@/lib/productImageUrl";
+import { getCurrentUserProfile } from "@/lib/currentUserProfile";
+import { claimAssignedProductsForUser } from "@/lib/claimAssignedProducts";
 
 const productInclude = {
   categoryRef: true,
@@ -28,6 +30,11 @@ async function requireUserId(): Promise<string | NextResponse> {
 export async function GET() {
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
+
+  const profile = await getCurrentUserProfile();
+  if (profile) {
+    await claimAssignedProductsForUser(profile);
+  }
 
   const products = await prisma.product.findMany({
     where: { ownerId: userId },
