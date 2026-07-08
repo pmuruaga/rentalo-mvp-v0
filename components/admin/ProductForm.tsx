@@ -18,6 +18,10 @@ interface ProductFormProps {
   product?: Product;
   adminKey?: string;
   /**
+   * Publicación asistida por admin: pide email del futuro publicador.
+   */
+  assistedPublication?: boolean;
+  /**
    * Si se pasa, "Publicado por" y "WhatsApp" se muestran como texto no
    * editable (se derivan del perfil del usuario en el servidor).
    */
@@ -26,6 +30,7 @@ interface ProductFormProps {
     name: string;
     categoryId: string;
     subcategoryId: string;
+    assignedOwnerEmail?: string;
   }) => Promise<void>;
   onCancel: () => void;
 }
@@ -42,6 +47,7 @@ function slugify(text: string): string {
 export function ProductForm({
   product,
   adminKey,
+  assistedPublication,
   publisher,
   onSave,
   onCancel,
@@ -78,6 +84,9 @@ export function ProductForm({
   );
   const [whatsappNumber, setWhatsappNumber] = useState(
     product?.whatsappNumber ?? ""
+  );
+  const [assignedOwnerEmail, setAssignedOwnerEmail] = useState(
+    product?.assignedOwnerEmail ?? ""
   );
   const [deliveryMethod, setDeliveryMethod] = useState(
     product?.deliveryMethod ?? ""
@@ -316,10 +325,15 @@ export function ProductForm({
           .filter(Boolean),
         ...(publisher
           ? {}
-          : {
-              publishedBy: publishedBy.trim() || undefined,
-              whatsappNumber: whatsappNumber.trim() || undefined,
-            }),
+          : assistedPublication
+            ? {
+                assignedOwnerEmail: assignedOwnerEmail.trim(),
+                whatsappNumber: whatsappNumber.trim() || undefined,
+              }
+            : {
+                publishedBy: publishedBy.trim() || undefined,
+                whatsappNumber: whatsappNumber.trim() || undefined,
+              }),
         deliveryMethod: deliveryMethod.trim() || undefined,
         condition: condition.trim() || undefined,
         availabilityNotes: availabilityNotes.trim() || undefined,
@@ -335,8 +349,31 @@ export function ProductForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <h2 className="text-xl font-semibold">
-        {product ? "Editar producto" : "Nuevo producto"}
+        {product
+          ? "Editar producto"
+          : assistedPublication
+            ? "Nueva publicación asistida"
+            : "Nuevo producto"}
       </h2>
+
+      {assistedPublication ? (
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            Email del futuro publicador *
+          </label>
+          <Input
+            type="email"
+            value={assignedOwnerEmail}
+            onChange={(e) => setAssignedOwnerEmail(e.target.value)}
+            required
+            placeholder="usuario@ejemplo.com"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Si el usuario ya existe, la publicación se vincula de inmediato. Si
+            no, quedará pendiente hasta que se registre con ese email.
+          </p>
+        </div>
+      ) : null}
 
       <div>
         <label className="mb-1 block text-sm font-medium">Nombre *</label>
@@ -603,6 +640,20 @@ export function ProductForm({
           ) : null}
           <p className="text-xs text-muted-foreground">
             Estos datos se toman automáticamente de tu perfil.
+          </p>
+        </div>
+      ) : assistedPublication ? (
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            WhatsApp del publicador (opcional, ej: 5493851234567)
+          </label>
+          <Input
+            value={whatsappNumber}
+            onChange={(e) => setWhatsappNumber(e.target.value)}
+            placeholder="Solo si el usuario aún no está registrado"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Si el usuario ya existe, se usa el WhatsApp de su perfil.
           </p>
         </div>
       ) : (

@@ -1,9 +1,27 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "@/lib/prisma";
+import { claimAssignedProductsForUser } from "@/lib/claimAssignedProducts";
 
 const hasGoogleEnv =
   !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
+
+async function claimProductsForAuthUser(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      isBusiness: true,
+      businessName: true,
+      contactWhatsapp: true,
+    },
+  });
+  if (user) {
+    await claimAssignedProductsForUser(user);
+  }
+}
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
@@ -13,6 +31,22 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          await claimProductsForAuthUser(user.id);
+        },
+      },
+    },
+    session: {
+      create: {
+        after: async (session) => {
+          await claimProductsForAuthUser(session.userId);
+        },
+      },
+    },
   },
   user: {
     additionalFields: {

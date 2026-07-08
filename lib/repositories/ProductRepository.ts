@@ -22,6 +22,7 @@ export interface ProductCreateInput {
   minimumRentalPeriod?: string;
   importantInfo?: string;
   ownerId?: string | null;
+  assignedOwnerEmail?: string | null;
 }
 
 export interface ProductRepository {

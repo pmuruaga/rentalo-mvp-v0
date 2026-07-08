@@ -78,6 +78,7 @@ model Product {
   importantInfo          String?
   ownerId                String?
   owner                  User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  assignedOwnerEmail     String?  // email al que está preasignada la publicación (lowercase)
   status                 ProductStatus @default(ACTIVE)
   rentals                Rental[]
   reviews                Review[]
@@ -85,6 +86,7 @@ model Product {
   updatedAt              DateTime @updatedAt
 
   @@index([ownerId])
+  @@index([assignedOwnerEmail])
   @@index([categoryId])
   @@index([subcategoryId])
   @@index([status])
