@@ -4,6 +4,7 @@ import { getUserAverageRating } from "@/lib/reviews";
 import { getPublisherInfoFromProfile } from "@/lib/publisherInfo";
 import { listProductsByOwnerId } from "@/lib/productService";
 import type { Product } from "@/lib/products";
+import { getPublisherWhatsAppUrl } from "@/lib/whatsapp";
 
 export type PublisherPublicProfile = {
   id: string;
@@ -15,6 +16,8 @@ export type PublisherPublicProfile = {
   ratingCount: number;
   completedRentalsCount: number;
   activeListingsCount: number;
+  /** URL wa.me solo si el usuario cargó un teléfono válido. Nunca email. */
+  whatsappUrl: string | null;
 };
 
 export type PublisherReceivedReview = {
@@ -23,6 +26,8 @@ export type PublisherReceivedReview = {
   comment: string | null;
   createdAt: Date;
   reviewerName: string;
+  reviewerImage: string | null;
+  reviewerIsBusiness: boolean;
   productName: string;
 };
 
@@ -77,6 +82,7 @@ export async function getPublisherPublicProfile(
     ratingCount: rating?.count ?? 0,
     completedRentalsCount,
     activeListingsCount,
+    whatsappUrl: getPublisherWhatsAppUrl(user.contactWhatsapp),
   };
 }
 
@@ -98,19 +104,26 @@ export async function getPublisherReceivedReviews(
       rating: true,
       comment: true,
       createdAt: true,
-      reviewer: { select: { name: true } },
+      reviewer: {
+        select: { name: true, image: true, isBusiness: true, businessName: true },
+      },
       product: { select: { name: true } },
     },
   });
 
-  return rows.map((r) => ({
-    id: r.id,
-    rating: r.rating,
-    comment: r.comment,
-    createdAt: r.createdAt,
-    reviewerName: r.reviewer.name,
-    productName: r.product.name,
-  }));
+  return rows.map((r) => {
+    const { publishedBy } = getPublisherInfoFromProfile(r.reviewer);
+    return {
+      id: r.id,
+      rating: r.rating,
+      comment: r.comment,
+      createdAt: r.createdAt,
+      reviewerName: publishedBy,
+      reviewerImage: r.reviewer.image,
+      reviewerIsBusiness: r.reviewer.isBusiness,
+      productName: r.product.name,
+    };
+  });
 }
 
 export function formatMemberSince(date: Date): string {

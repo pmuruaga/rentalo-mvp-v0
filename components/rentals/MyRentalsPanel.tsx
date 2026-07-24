@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { UserAvatar } from "@/components/UserAvatar";
 import { rentalStatusLabel } from "@/lib/rentalLabels";
 
 interface Row {
@@ -21,7 +22,13 @@ interface Row {
   createdAt: string;
   hasSubmittedReview: boolean;
   product: { id: string; name: string; slug: string };
-  owner: { id: string; name: string } | null;
+  owner: {
+    id: string;
+    name: string;
+    image: string | null;
+    isBusiness: boolean;
+    businessName: string | null;
+  } | null;
 }
 
 function canRenterReview(status: string) {
@@ -111,6 +118,7 @@ export function MyRentalsPanel() {
         <TableHeader>
           <TableRow>
             <TableHead>Producto</TableHead>
+            <TableHead>Publicador</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead className="text-right">Acción</TableHead>
           </TableRow>
@@ -125,6 +133,27 @@ export function MyRentalsPanel() {
                 >
                   {r.product.name}
                 </Link>
+              </TableCell>
+              <TableCell>
+                {r.owner ? (
+                  <div className="flex items-center gap-2 text-sm">
+                    <UserAvatar
+                      imageUrl={r.owner.image}
+                      displayName={
+                        (r.owner.isBusiness && r.owner.businessName?.trim()) ||
+                        r.owner.name
+                      }
+                      isBusiness={r.owner.isBusiness}
+                      size="sm"
+                    />
+                    <span className="font-medium">
+                      {(r.owner.isBusiness && r.owner.businessName?.trim()) ||
+                        r.owner.name}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
               </TableCell>
               <TableCell>{rentalStatusLabel(r.status)}</TableCell>
               <TableCell className="text-right">

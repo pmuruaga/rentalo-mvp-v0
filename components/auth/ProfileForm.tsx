@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ProfileImageField } from "@/components/auth/ProfileImageField";
+import { authClient } from "@/lib/auth-client";
 
 type ProfileFormProps = {
   name: string;
@@ -11,6 +13,7 @@ type ProfileFormProps = {
   initialIsBusiness: boolean;
   initialBusinessName: string;
   initialContactWhatsapp: string;
+  initialImageUrl: string | null;
 };
 
 export function ProfileForm({
@@ -19,6 +22,7 @@ export function ProfileForm({
   initialIsBusiness,
   initialBusinessName,
   initialContactWhatsapp,
+  initialImageUrl,
 }: ProfileFormProps) {
   const router = useRouter();
   const [isBusiness, setIsBusiness] = useState(initialIsBusiness);
@@ -26,9 +30,13 @@ export function ProfileForm({
   const [contactWhatsapp, setContactWhatsapp] = useState(
     initialContactWhatsapp
   );
+  const [imageUrl, setImageUrl] = useState<string | null>(initialImageUrl);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const displayName =
+    (isBusiness && businessName.trim()) || name.trim() || email || "Usuario";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,8 +57,6 @@ export function ProfileForm({
       const data = await res.json();
       setBusinessName(data.businessName ?? "");
       setSuccess(true);
-      // Invalida el cache del router para que otras pantallas server-side
-      // lean los datos actualizados.
       router.refresh();
     } catch {
       setError("Ocurrió un error. Intentá de nuevo.");
@@ -59,8 +65,23 @@ export function ProfileForm({
     }
   }
 
+  async function handleImageUrlChange(url: string | null) {
+    setImageUrl(url);
+    // Refresca la sesión de Better Auth para que el header muestre la imagen.
+    await authClient.getSession();
+    router.refresh();
+  }
+
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-sm space-y-4">
+      <ProfileImageField
+        isBusiness={isBusiness}
+        displayName={displayName}
+        imageUrl={imageUrl}
+        persist
+        onImageUrlChange={(url) => void handleImageUrlChange(url)}
+      />
+
       <div className="space-y-2">
         <label className="text-sm font-medium">Nombre</label>
         <Input type="text" value={name} disabled />

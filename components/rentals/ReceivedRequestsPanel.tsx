@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { UserAvatar } from "@/components/UserAvatar";
 import { rentalStatusLabel } from "@/lib/rentalLabels";
 
 interface Row {
@@ -21,7 +22,14 @@ interface Row {
   createdAt: string;
   hasSubmittedReview: boolean;
   product: { id: string; name: string; slug: string };
-  renter: { id: string; name: string; email: string };
+  renter: {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
+    isBusiness: boolean;
+    businessName: string | null;
+  };
 }
 
 export function ReceivedRequestsPanel() {
@@ -123,9 +131,25 @@ export function ReceivedRequestsPanel() {
                 </Link>
               </TableCell>
               <TableCell>
-                <div className="text-sm">
-                  <div className="font-medium">{r.renter.name}</div>
-                  <div className="text-muted-foreground">{r.renter.email}</div>
+                <div className="flex items-center gap-2 text-sm">
+                  <UserAvatar
+                    imageUrl={r.renter.image}
+                    displayName={
+                      (r.renter.isBusiness && r.renter.businessName?.trim()) ||
+                      r.renter.name
+                    }
+                    isBusiness={r.renter.isBusiness}
+                    size="sm"
+                  />
+                  <div className="min-w-0">
+                    <div className="font-medium">
+                      {(r.renter.isBusiness && r.renter.businessName?.trim()) ||
+                        r.renter.name}
+                    </div>
+                    <div className="truncate text-muted-foreground">
+                      {r.renter.email}
+                    </div>
+                  </div>
                 </div>
               </TableCell>
               <TableCell>{rentalStatusLabel(r.status)}</TableCell>

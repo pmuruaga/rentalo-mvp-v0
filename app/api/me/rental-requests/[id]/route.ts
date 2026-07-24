@@ -84,7 +84,16 @@ export async function PATCH(
         : { status: next },
     include: {
       product: { select: { id: true, name: true, slug: true } },
-      renter: { select: { id: true, name: true, email: true } },
+      renter: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          isBusiness: true,
+          businessName: true,
+        },
+      },
     },
   });
 
