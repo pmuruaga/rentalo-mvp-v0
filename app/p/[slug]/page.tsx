@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { siteName } from "@/lib/site";
 import { RequestRentalBlock } from "@/components/rentals/RequestRentalBlock";
-import { StarRating } from "@/components/reviews/StarRating";
-import { getUserAverageRating } from "@/lib/reviews";
+import { PublicadorCard } from "@/components/publisher/PublicadorCard";
+import { getPublisherPublicProfile } from "@/lib/publisherPublic";
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("es-AR", {
@@ -67,8 +67,10 @@ export default async function ProductoPage({
   });
   const currentUserId = session?.user?.id ?? null;
 
-  const ownerRating =
-    product.ownerId != null ? await getUserAverageRating(product.ownerId) : null;
+  const publisher =
+    product.ownerId != null
+      ? await getPublisherPublicProfile(product.ownerId)
+      : null;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -91,36 +93,24 @@ export default async function ProductoPage({
             <p className="text-xl font-semibold">
               {formatPrice(product.pricePerDay)}/día
             </p>
-            {(product.availableIn?.length || product.publishedBy) && (
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                {product.availableIn?.length ? (
-                  <span>Disponible en: {product.availableIn.join(", ")}</span>
-                ) : null}
-                {product.publishedBy ? (
-                  <span>
-                    Publicado por {product.publishedBy}
-                    {ownerRating ? (
-                      <>
-                        {" "}
-                        ·{" "}
-                        <span className="inline-flex items-center gap-1">
-                          <StarRating
-                            value={Math.round(ownerRating.average)}
-                            readOnly
-                            size="sm"
-                          />
-                          <span>
-                            {ownerRating.average.toFixed(1)} ({ownerRating.count})
-                          </span>
-                        </span>
-                      </>
-                    ) : null}
-                  </span>
-                ) : null}
+            {product.availableIn?.length ? (
+              <div className="text-sm text-muted-foreground">
+                Disponible en: {product.availableIn.join(", ")}
               </div>
-            )}
+            ) : null}
           </CardHeader>
           <CardContent className="space-y-6">
+            {publisher ? (
+              <div>
+                <h2 className="mb-3 font-semibold">Publicado por</h2>
+                <PublicadorCard publisher={publisher} />
+              </div>
+            ) : product.publishedBy ? (
+              <p className="text-sm text-muted-foreground">
+                Publicado por {product.publishedBy}
+              </p>
+            ) : null}
+
             <div>
               <h2 className="font-semibold">Descripción</h2>
               <p className="mt-1 text-muted-foreground">{product.description}</p>
