@@ -26,7 +26,16 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     include: {
       product: { select: { id: true, name: true, slug: true } },
-      renter: { select: { id: true, name: true, email: true } },
+      renter: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          isBusiness: true,
+          businessName: true,
+        },
+      },
       reviews: {
         where: { type: ReviewType.OWNER_TO_RENTER },
         select: { id: true },

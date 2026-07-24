@@ -43,6 +43,7 @@ export default async function PerfilPage() {
           initialIsBusiness={user.isBusiness}
           initialBusinessName={user.businessName ?? ""}
           initialContactWhatsapp={user.contactWhatsapp ?? ""}
+          initialImageUrl={user.image}
         />
       </section>
     </div>

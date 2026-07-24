@@ -2,10 +2,10 @@ import { getCurrentUserProfile } from "@/lib/currentUserProfile";
 
 export type PublisherProfile = {
   name: string;
-  email: string;
+  email?: string | null;
   isBusiness: boolean;
   businessName: string | null;
-  contactWhatsapp: string | null;
+  contactWhatsapp?: string | null;
 };
 
 /**
@@ -18,7 +18,7 @@ export function getPublisherInfoFromProfile(user: PublisherProfile): {
   const publishedBy =
     user.isBusiness && user.businessName?.trim()
       ? user.businessName.trim()
-      : user.name || user.email;
+      : user.name || user.email || "Usuario";
 
   return {
     publishedBy,

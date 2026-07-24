@@ -6,6 +6,7 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ProfileImageField } from "@/components/auth/ProfileImageField";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -15,12 +16,18 @@ export function RegisterForm() {
   const [isBusiness, setIsBusiness] = useState(false);
   const [businessName, setBusinessName] = useState("");
   const [contactWhatsapp, setContactWhatsapp] = useState("");
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const displayName =
+    (isBusiness && businessName.trim()) || name.trim() || "Usuario";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setWarning(null);
     setLoading(true);
     try {
       const { error: signError } = await authClient.signUp.email({
@@ -35,6 +42,33 @@ export function RegisterForm() {
         setError(signError.message ?? "No se pudo crear la cuenta.");
         return;
       }
+
+      if (pendingImage) {
+        try {
+          const form = new FormData();
+          form.append("file", pendingImage);
+          const res = await fetch("/api/me/profile/image", {
+            method: "POST",
+            body: form,
+            credentials: "same-origin",
+          });
+          if (!res.ok) {
+            setWarning(
+              "Tu cuenta se creó correctamente, pero no pudimos subir la imagen. Podés agregarla después desde Mi perfil."
+            );
+            // Breve pausa para que el usuario lea el aviso.
+            await new Promise((r) => setTimeout(r, 1800));
+          } else {
+            await authClient.getSession();
+          }
+        } catch {
+          setWarning(
+            "Tu cuenta se creó correctamente, pero no pudimos subir la imagen. Podés agregarla después desde Mi perfil."
+          );
+          await new Promise((r) => setTimeout(r, 1800));
+        }
+      }
+
       router.push("/");
       router.refresh();
     } catch {
@@ -134,9 +168,22 @@ export function RegisterForm() {
           onChange={(e) => setContactWhatsapp(e.target.value)}
         />
       </div>
+
+      <ProfileImageField
+        isBusiness={isBusiness}
+        displayName={displayName}
+        persist={false}
+        onLocalFileChange={setPendingImage}
+      />
+
       {error ? (
         <p className="text-sm text-destructive" role="alert">
           {error}
+        </p>
+      ) : null}
+      {warning ? (
+        <p className="text-sm text-amber-700" role="status">
+          {warning}
         </p>
       ) : null}
       <Button type="submit" className="w-full" disabled={loading}>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export function AuthButtons() {
   const router = useRouter();
@@ -32,11 +33,24 @@ export function AuthButtons() {
   const user = session?.user;
   if (user) {
     const label = user.name?.trim() || user.email || "Usuario";
+    const isBusiness = Boolean(user.isBusiness);
+    const displayName =
+      (isBusiness && user.businessName?.trim()) || label;
+
     return (
       <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-        <span className="max-w-[10rem] truncate text-sm text-muted-foreground sm:max-w-[14rem]">
-          {label}
-        </span>
+        <Link
+          href="/perfil"
+          className="flex max-w-[12rem] items-center gap-2 truncate text-sm text-muted-foreground sm:max-w-[16rem]"
+        >
+          <UserAvatar
+            imageUrl={user.image}
+            displayName={displayName}
+            isBusiness={isBusiness}
+            size="sm"
+          />
+          <span className="truncate hover:text-foreground">{label}</span>
+        </Link>
         <Button
           type="button"
           variant="outline"

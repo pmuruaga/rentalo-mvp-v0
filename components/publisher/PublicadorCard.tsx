@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { StarRating } from "@/components/reviews/StarRating";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/UserAvatar";
 import { formatMemberSince } from "@/lib/publisherPublic";
 import type { PublisherPublicProfile } from "@/lib/publisherPublic";
 
@@ -8,50 +9,44 @@ type Props = {
   publisher: PublisherPublicProfile;
   /** Oculta el botón "Ver perfil" (p. ej. en la página del perfil). */
   hideProfileLink?: boolean;
+  /** Tamaño del avatar (lg en vistas destacadas). */
+  avatarSize?: "md" | "lg" | "xl";
 };
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-}
-
-export function PublicadorCard({ publisher, hideProfileLink = false }: Props) {
-  const hasReviews = publisher.ratingCount > 0 && publisher.ratingAverage != null;
+/**
+ * Resumen compacto del publicador (detalle de producto / vista previa).
+ * El perfil completo vive en /publicador/[id].
+ */
+export function PublicadorCard({
+  publisher,
+  hideProfileLink = false,
+  avatarSize = "md",
+}: Props) {
+  const hasReviews =
+    publisher.ratingCount > 0 && publisher.ratingAverage != null;
+  const accountLabel = publisher.isBusiness
+    ? "Empresa / Emprendimiento"
+    : "Particular";
 
   return (
     <div className="rounded-xl border bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex gap-4">
-          <div className="relative size-14 shrink-0 overflow-hidden rounded-full bg-muted">
-            {publisher.image ? (
-              // eslint-disable-next-line @next/next/no-img-element -- avatares OAuth (dominios variables)
-              <img
-                src={publisher.image}
-                alt={publisher.displayName}
-                className="size-full object-cover"
-              />
-            ) : (
-              <span
-                className="flex size-full items-center justify-center text-sm font-semibold text-muted-foreground"
-                aria-hidden
-              >
-                {initials(publisher.displayName)}
-              </span>
-            )}
-          </div>
+          <UserAvatar
+            imageUrl={publisher.image}
+            displayName={publisher.displayName}
+            isBusiness={publisher.isBusiness}
+            size={avatarSize === "xl" ? "lg" : avatarSize}
+          />
 
           <div className="min-w-0 space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="truncate text-lg font-semibold leading-tight">
                 {publisher.displayName}
               </h2>
-              {publisher.isBusiness ? (
-                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
-                  🏢 Empresa
-                </span>
-              ) : null}
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                {accountLabel}
+              </span>
             </div>
 
             {hasReviews ? (
@@ -79,7 +74,7 @@ export function PublicadorCard({ publisher, hideProfileLink = false }: Props) {
               {formatMemberSince(publisher.createdAt)}
             </p>
 
-            <dl className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-sm text-muted-foreground">
+            <dl className="flex flex-wrap gap-x-4 gap-y-1 pt-0.5 text-sm text-muted-foreground">
               <div>
                 <dt className="sr-only">Alquileres completados</dt>
                 <dd>
@@ -107,7 +102,12 @@ export function PublicadorCard({ publisher, hideProfileLink = false }: Props) {
         </div>
 
         {!hideProfileLink ? (
-          <Button variant="outline" size="sm" asChild className="shrink-0 self-start">
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="shrink-0 self-start"
+          >
             <Link href={`/publicador/${publisher.id}`}>Ver perfil</Link>
           </Button>
         ) : null}
