@@ -9,6 +9,7 @@ import { getBaseWhatsAppUrl } from "@/lib/whatsapp";
 import { WhatsAppConsultForm } from "@/components/WhatsAppConsultForm";
 import { ProductViewTracker } from "@/components/ProductViewTracker";
 import { ProductGallery } from "@/components/ProductGallery";
+import { ProductShareButton } from "@/components/ProductShareButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { siteName } from "@/lib/site";
@@ -89,7 +90,10 @@ export default async function ProductoPage({
             <span className="inline-block w-fit rounded-full bg-[var(--brand-secondary)]/50 px-2 py-1 text-sm font-medium text-[var(--brand-primary)]">
               {getProductCategoryLabel(product)}
             </span>
-            <h1 className="text-2xl font-bold">{product.name}</h1>
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-2xl font-bold">{product.name}</h1>
+              <ProductShareButton productName={product.name} />
+            </div>
             <p className="text-xl font-semibold">
               {formatPrice(product.pricePerDay)}/día
             </p>
