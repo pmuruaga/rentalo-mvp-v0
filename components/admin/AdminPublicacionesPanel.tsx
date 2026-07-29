@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ProductForm } from "@/components/admin/ProductForm";
+import { TelegramNotificationsSection } from "@/components/admin/TelegramNotificationsSection";
 import type { Product } from "@/lib/products";
 
 type AdminProductRow = {
@@ -207,6 +208,8 @@ export function AdminPublicacionesPanel() {
           {error}
         </p>
       ) : null}
+
+      <TelegramNotificationsSection />
 
       {products.length === 0 ? (
         <p className="rounded-lg border border-dashed bg-muted/50 p-8 text-center text-muted-foreground">
