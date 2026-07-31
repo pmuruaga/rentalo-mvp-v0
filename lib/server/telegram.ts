@@ -75,14 +75,15 @@ export function escapeHtml(value: string): string {
 }
 
 export function buildTelegramMessage(options: {
+  emoji?: string;
   title: string;
   lines?: string[];
 }): string {
-  const parts = [
-    "🔔 <b>Rentalo</b>",
-    "",
-    `🧪 <b>${escapeHtml(options.title)}</b>`,
-  ];
+  const heading = options.emoji
+    ? `${options.emoji} <b>${escapeHtml(options.title)}</b>`
+    : `<b>${escapeHtml(options.title)}</b>`;
+
+  const parts = ["🔔 <b>Rentalo</b>", "", heading];
 
   if (options.lines?.length) {
     parts.push("");
@@ -92,6 +93,49 @@ export function buildTelegramMessage(options: {
   }
 
   return parts.join("\n");
+}
+
+/** Base pública normalizada (sin slash final). Null si APP_URL no está definida. */
+export function getPublicAppUrl(): string | null {
+  const raw = readEnv("APP_URL");
+  if (!raw) return null;
+  const normalized = raw.replace(/\/+$/, "");
+  return normalized || null;
+}
+
+/** Construye una URL pública absoluta, o null si APP_URL no está configurada. */
+export function buildPublicUrl(path: string): string | null {
+  const base = getPublicAppUrl();
+  if (!base) return null;
+  return `${base}/${path.replace(/^\/+/, "")}`;
+}
+
+export function formatArgentinaDateTime(date: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("es-AR", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+
+  return `${part("day")}/${part("month")}/${part("year")} ${part("hour")}:${part("minute")}`;
+}
+
+export function getEnvironmentLabel(): string {
+  switch (process.env.VERCEL_ENV) {
+    case "production":
+      return "Producción";
+    case "preview":
+      return "Preview";
+    default:
+      return "Desarrollo";
+  }
 }
 
 function safeErrorMessage(error: unknown): string {

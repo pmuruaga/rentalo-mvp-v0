@@ -7,6 +7,7 @@ import { getCategoryFieldsForCreate } from "@/lib/productCategoryResolve";
 import { normalizeProductImages } from "@/lib/productImageUrl";
 import { isValidEmail, normalizeEmail } from "@/lib/assignedOwnerEmail";
 import { resolveAssistedPublicationOwner } from "@/lib/resolveAssistedPublication";
+import { notifyNewProductPublished } from "@/lib/server/notifications";
 
 const productInclude = {
   categoryRef: true,
@@ -107,6 +108,17 @@ export async function POST(request: NextRequest) {
       assignedOwnerEmail: normalizeEmail(ownerResolution.assignedOwnerEmail),
     },
     include: productInclude,
+  });
+
+  // Notificación secundaria: siempre el mensaje asistido, nunca el de
+  // publicación normal, para no duplicar avisos del mismo producto.
+  await notifyNewProductPublished({
+    product: serializePrismaProduct(product),
+    owner: product.owner
+      ? { name: product.owner.name, email: product.owner.email }
+      : null,
+    assistedByAdmin: true,
+    assignedOwnerEmail: ownerResolution.assignedOwnerEmail,
   });
 
   return NextResponse.json(toAdminRow(product), { status: 201 });

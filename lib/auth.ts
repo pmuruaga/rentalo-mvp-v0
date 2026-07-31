@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "@/lib/prisma";
 import { claimAssignedProductsForUser } from "@/lib/claimAssignedProducts";
+import { notifyNewUserRegistered } from "@/lib/server/notifications";
 
 const hasGoogleEnv =
   !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
@@ -21,6 +22,7 @@ async function claimProductsForAuthUser(userId: string) {
   if (user) {
     await claimAssignedProductsForUser(user);
   }
+  return user;
 }
 
 export const auth = betterAuth({
@@ -36,7 +38,12 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          await claimProductsForAuthUser(user.id);
+          // Único punto que corre una sola vez por cuenta creada: no se dispara
+          // al iniciar sesión ni al editar el perfil.
+          const profile = await claimProductsForAuthUser(user.id);
+          if (profile) {
+            await notifyNewUserRegistered(profile);
+          }
         },
       },
     },

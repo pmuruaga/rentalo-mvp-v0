@@ -10,6 +10,7 @@ export async function POST() {
   if (auth instanceof NextResponse) return auth;
 
   const text = buildTelegramMessage({
+    emoji: "🧪",
     title: "Mensaje de prueba",
     lines: ["La integración con Telegram está funcionando correctamente."],
   });
