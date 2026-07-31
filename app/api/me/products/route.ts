@@ -3,11 +3,12 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { serializePrismaProduct } from "@/lib/serializePrismaProduct";
-import { getPublisherInfo } from "@/lib/publisherInfo";
+import { getPublisherInfoFromProfile } from "@/lib/publisherInfo";
 import { getCategoryFieldsForCreate } from "@/lib/productCategoryResolve";
 import { normalizeProductImages } from "@/lib/productImageUrl";
 import { getCurrentUserProfile } from "@/lib/currentUserProfile";
 import { claimAssignedProductsForUser } from "@/lib/claimAssignedProducts";
+import { notifyNewProductPublished } from "@/lib/server/notifications";
 
 const productInclude = {
   categoryRef: true,
@@ -60,7 +61,10 @@ export async function POST(request: NextRequest) {
 
   // publishedBy y whatsappNumber siempre se derivan del perfil del usuario,
   // nunca del body.
-  const { publishedBy, whatsappNumber } = await getPublisherInfo();
+  const profile = await getCurrentUserProfile();
+  const { publishedBy, whatsappNumber } = profile
+    ? getPublisherInfoFromProfile(profile)
+    : { publishedBy: "", whatsappNumber: null };
 
   const product = await prisma.product.create({
     data: {
@@ -91,5 +95,15 @@ export async function POST(request: NextRequest) {
     include: productInclude,
   });
 
-  return NextResponse.json(serializePrismaProduct(product));
+  const serialized = serializePrismaProduct(product);
+
+  // Notificación secundaria: ya se persistió el producto y nunca puede fallar
+  // el alta desde acá.
+  await notifyNewProductPublished({
+    product: serialized,
+    owner: profile,
+    assistedByAdmin: false,
+  });
+
+  return NextResponse.json(serialized);
 }
