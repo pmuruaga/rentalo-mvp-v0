@@ -11,6 +11,7 @@ export type PublisherPublicProfile = {
   displayName: string;
   image: string | null;
   isBusiness: boolean;
+  verificationStatus: string;
   createdAt: Date;
   ratingAverage: number | null;
   ratingCount: number;
@@ -28,6 +29,7 @@ export type PublisherReceivedReview = {
   reviewerName: string;
   reviewerImage: string | null;
   reviewerIsBusiness: boolean;
+  reviewerVerificationStatus: string;
   productName: string;
 };
 
@@ -48,6 +50,7 @@ export async function getPublisherPublicProfile(
       isBusiness: true,
       businessName: true,
       contactWhatsapp: true,
+      verificationStatus: true,
       createdAt: true,
     },
   });
@@ -77,6 +80,7 @@ export async function getPublisherPublicProfile(
     displayName: publishedBy,
     image: user.image,
     isBusiness: user.isBusiness,
+    verificationStatus: user.verificationStatus,
     createdAt: user.createdAt,
     ratingAverage: rating?.average ?? null,
     ratingCount: rating?.count ?? 0,
@@ -105,7 +109,13 @@ export async function getPublisherReceivedReviews(
       comment: true,
       createdAt: true,
       reviewer: {
-        select: { name: true, image: true, isBusiness: true, businessName: true },
+        select: {
+          name: true,
+          image: true,
+          isBusiness: true,
+          businessName: true,
+          verificationStatus: true,
+        },
       },
       product: { select: { name: true } },
     },
@@ -121,6 +131,7 @@ export async function getPublisherReceivedReviews(
       reviewerName: publishedBy,
       reviewerImage: r.reviewer.image,
       reviewerIsBusiness: r.reviewer.isBusiness,
+      reviewerVerificationStatus: r.reviewer.verificationStatus,
       productName: r.product.name,
     };
   });

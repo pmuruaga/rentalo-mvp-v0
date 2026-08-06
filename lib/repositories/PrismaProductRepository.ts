@@ -10,6 +10,7 @@ import type {
 const productInclude = {
   categoryRef: true,
   subcategoryRef: true,
+  owner: { select: { verificationStatus: true } },
 } as const;
 
 type ProductRow = {
@@ -39,6 +40,7 @@ type ProductRow = {
   status: string;
   categoryRef?: { name: string } | null;
   subcategoryRef?: { name: string } | null;
+  owner?: { verificationStatus: string } | null;
 };
 
 function toProduct(row: ProductRow): Product {
@@ -69,6 +71,7 @@ function toProduct(row: ProductRow): Product {
     minimumRentalPeriod: row.minimumRentalPeriod?.trim() || undefined,
     importantInfo: row.importantInfo?.trim() || undefined,
     ownerId: row.ownerId ?? null,
+    ownerVerificationStatus: row.owner?.verificationStatus ?? null,
     assignedOwnerEmail: row.assignedOwnerEmail ?? null,
     status: row.status,
   };

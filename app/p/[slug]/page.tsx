@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { siteName } from "@/lib/site";
 import { RequestRentalBlock } from "@/components/rentals/RequestRentalBlock";
 import { PublicadorCard } from "@/components/publisher/PublicadorCard";
+import { UserNameWithBadges } from "@/components/user/VerificationBadge";
 import { getPublisherPublicProfile } from "@/lib/publisherPublic";
 
 function formatPrice(price: number): string {
@@ -110,8 +111,14 @@ export default async function ProductoPage({
                 <PublicadorCard publisher={publisher} />
               </div>
             ) : product.publishedBy ? (
-              <p className="text-sm text-muted-foreground">
-                Publicado por {product.publishedBy}
+              <p className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+                <span>Publicado por</span>
+                <UserNameWithBadges
+                  name={product.publishedBy}
+                  verificationStatus={product.ownerVerificationStatus}
+                  badgeSize={14}
+                  nameClassName="text-sm text-muted-foreground"
+                />
               </p>
             ) : null}
 

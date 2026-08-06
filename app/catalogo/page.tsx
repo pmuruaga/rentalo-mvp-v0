@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UserNameWithBadges } from "@/components/user/VerificationBadge";
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("es-AR", {
@@ -135,8 +136,14 @@ export default async function CatalogoPage({
                   </p>
                 ) : null}
                 {p.publishedBy ? (
-                  <p className="text-xs text-muted-foreground">
-                    Publicado por {p.publishedBy}
+                  <p className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                    <span>Publicado por</span>
+                    <UserNameWithBadges
+                      name={p.publishedBy}
+                      verificationStatus={p.ownerVerificationStatus}
+                      badgeSize={12}
+                      nameClassName="text-xs text-muted-foreground"
+                    />
                   </p>
                 ) : null}
               </CardContent>

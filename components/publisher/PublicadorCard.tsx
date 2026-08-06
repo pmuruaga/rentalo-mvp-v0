@@ -2,6 +2,7 @@ import Link from "next/link";
 import { StarRating } from "@/components/reviews/StarRating";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/UserAvatar";
+import { UserNameWithBadges } from "@/components/user/VerificationBadge";
 import { formatMemberSince } from "@/lib/publisherPublic";
 import type { PublisherPublicProfile } from "@/lib/publisherPublic";
 
@@ -41,9 +42,13 @@ export function PublicadorCard({
 
           <div className="min-w-0 space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="truncate text-lg font-semibold leading-tight">
-                {publisher.displayName}
-              </h2>
+              <UserNameWithBadges
+                as="h2"
+                name={publisher.displayName}
+                verificationStatus={publisher.verificationStatus}
+                badgeSize={16}
+                nameClassName="truncate text-lg font-semibold leading-tight"
+              />
               <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                 {accountLabel}
               </span>

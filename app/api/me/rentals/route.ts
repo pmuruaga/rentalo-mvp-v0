@@ -40,6 +40,7 @@ export async function GET() {
           image: true,
           isBusiness: true,
           businessName: true,
+          verificationStatus: true,
         },
       },
       reviews: {

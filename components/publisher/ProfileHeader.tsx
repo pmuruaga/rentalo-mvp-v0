@@ -3,6 +3,7 @@ import { StarRating } from "@/components/reviews/StarRating";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ShareProfileButton } from "@/components/publisher/ShareProfileButton";
+import { UserNameWithBadges } from "@/components/user/VerificationBadge";
 import {
   formatMemberSince,
   type PublisherPublicProfile,
@@ -39,9 +40,13 @@ export function ProfileHeader({
         <div className="min-w-0 flex-1 space-y-4 text-center sm:text-left">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                {publisher.displayName}
-              </h1>
+              <UserNameWithBadges
+                as="h1"
+                name={publisher.displayName}
+                verificationStatus={publisher.verificationStatus}
+                badgeSize={18}
+                nameClassName="text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+              />
               <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                 {accountLabel}
               </span>

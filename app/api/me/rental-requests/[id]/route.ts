@@ -92,6 +92,7 @@ export async function PATCH(
           image: true,
           isBusiness: true,
           businessName: true,
+          verificationStatus: true,
         },
       },
     },

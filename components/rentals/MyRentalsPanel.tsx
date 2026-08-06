@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { UserAvatar } from "@/components/UserAvatar";
+import { UserNameWithBadges } from "@/components/user/VerificationBadge";
 import { rentalStatusLabel } from "@/lib/rentalLabels";
 
 interface Row {
@@ -28,6 +29,7 @@ interface Row {
     image: string | null;
     isBusiness: boolean;
     businessName: string | null;
+    verificationStatus: string;
   } | null;
 }
 
@@ -147,8 +149,15 @@ export function MyRentalsPanel() {
                       size="sm"
                     />
                     <span className="font-medium">
-                      {(r.owner.isBusiness && r.owner.businessName?.trim()) ||
-                        r.owner.name}
+                      <UserNameWithBadges
+                        name={
+                          (r.owner.isBusiness && r.owner.businessName?.trim()) ||
+                          r.owner.name
+                        }
+                        verificationStatus={r.owner.verificationStatus}
+                        badgeSize={14}
+                        nameClassName="font-medium"
+                      />
                     </span>
                   </div>
                 ) : (
