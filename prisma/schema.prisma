@@ -12,6 +12,12 @@ enum UserRole {
   ADMIN
 }
 
+enum UserVerificationStatus {
+  NONE
+  VERIFIED_USER
+  VERIFIED_COMPANY
+}
+
 enum ProductStatus {
   ACTIVE
   PAUSED
@@ -102,6 +108,7 @@ model User {
   isBusiness      Boolean @default(false)
   businessName    String?
   contactWhatsapp String?
+  verificationStatus UserVerificationStatus @default(NONE)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]

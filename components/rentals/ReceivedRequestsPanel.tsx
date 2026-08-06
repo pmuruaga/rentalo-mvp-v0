@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { UserAvatar } from "@/components/UserAvatar";
+import { UserNameWithBadges } from "@/components/user/VerificationBadge";
 import { rentalStatusLabel } from "@/lib/rentalLabels";
 
 interface Row {
@@ -29,6 +30,7 @@ interface Row {
     image: string | null;
     isBusiness: boolean;
     businessName: string | null;
+    verificationStatus: string;
   };
 }
 
@@ -142,10 +144,15 @@ export function ReceivedRequestsPanel() {
                     size="sm"
                   />
                   <div className="min-w-0">
-                    <div className="font-medium">
-                      {(r.renter.isBusiness && r.renter.businessName?.trim()) ||
-                        r.renter.name}
-                    </div>
+                    <UserNameWithBadges
+                      name={
+                        (r.renter.isBusiness && r.renter.businessName?.trim()) ||
+                        r.renter.name
+                      }
+                      verificationStatus={r.renter.verificationStatus}
+                      badgeSize={14}
+                      nameClassName="font-medium"
+                    />
                     <div className="truncate text-muted-foreground">
                       {r.renter.email}
                     </div>

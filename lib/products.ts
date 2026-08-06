@@ -24,6 +24,8 @@ export interface Product {
   importantInfo?: string;
   /** Dueño (Better Auth). Null en catálogo heredado o creado solo por admin. */
   ownerId?: string | null;
+  /** Estado de verificación del dueño (para badge en catálogo). */
+  ownerVerificationStatus?: string | null;
   /** Email al que está preasignada la publicación (admin asistido). */
   assignedOwnerEmail?: string | null;
   status?: string;

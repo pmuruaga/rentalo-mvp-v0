@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/publisher/EmptyState";
 import { StarRating } from "@/components/reviews/StarRating";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/UserAvatar";
+import { UserNameWithBadges } from "@/components/user/VerificationBadge";
 import type { PublisherReceivedReview } from "@/lib/publisherPublic";
 
 const INITIAL_VISIBLE = 5;
@@ -82,9 +83,12 @@ export function ProfileReviews({
                         size="sm"
                       />
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
-                          {review.reviewerName}
-                        </p>
+                        <UserNameWithBadges
+                          name={review.reviewerName}
+                          verificationStatus={review.reviewerVerificationStatus}
+                          badgeSize={14}
+                          nameClassName="truncate text-sm font-medium"
+                        />
                         <div className="mt-0.5 flex items-center gap-1.5">
                           <StarRating
                             value={review.rating}

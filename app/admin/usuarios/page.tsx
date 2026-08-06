@@ -2,17 +2,17 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUserProfile } from "@/lib/currentUserProfile";
 import { isAdminRole } from "@/lib/admin";
-import { AdminPublicacionesPanel } from "@/components/admin/AdminPublicacionesPanel";
+import { AdminUsersPanel } from "@/components/admin/AdminUsersPanel";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
-  title: "Admin · Publicaciones",
+  title: "Admin · Usuarios",
 };
 
-export default async function AdminPublicacionesPage() {
+export default async function AdminUsuariosPage() {
   const user = await getCurrentUserProfile();
   if (!user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Fpublicaciones");
+    redirect("/login?callbackUrl=%2Fadmin%2Fusuarios");
   }
   if (!isAdminRole(user.role)) {
     redirect("/");
@@ -25,10 +25,10 @@ export default async function AdminPublicacionesPage() {
           <Link href="/">← Volver al sitio</Link>
         </Button>
         <Button variant="ghost" asChild>
-          <Link href="/admin/usuarios">Usuarios</Link>
+          <Link href="/admin/publicaciones">Publicaciones</Link>
         </Button>
       </div>
-      <AdminPublicacionesPanel />
+      <AdminUsersPanel />
     </div>
   );
 }

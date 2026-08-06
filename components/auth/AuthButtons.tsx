@@ -6,6 +6,7 @@ import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/UserAvatar";
+import { UserNameWithBadges } from "@/components/user/VerificationBadge";
 
 export function AuthButtons() {
   const router = useRouter();
@@ -49,7 +50,16 @@ export function AuthButtons() {
             isBusiness={isBusiness}
             size="sm"
           />
-          <span className="truncate hover:text-foreground">{label}</span>
+          <UserNameWithBadges
+            name={label}
+            verificationStatus={
+              "verificationStatus" in user
+                ? String(user.verificationStatus ?? "NONE")
+                : null
+            }
+            badgeSize={12}
+            nameClassName="truncate hover:text-foreground"
+          />
         </Link>
         <Button
           type="button"

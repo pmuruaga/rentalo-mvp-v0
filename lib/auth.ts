@@ -79,6 +79,12 @@ export const auth = betterAuth({
         required: false,
         input: true,
       },
+      verificationStatus: {
+        type: "string",
+        required: false,
+        defaultValue: "NONE",
+        input: false,
+      },
     },
   },
   socialProviders: hasGoogleEnv

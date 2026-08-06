@@ -5,6 +5,10 @@ Formato: `Fecha - BranchName - Change Included`
 
 ---
 
+## 2026-08
+
+- **2026-08-05** - `feature/badges-user-verification` - Badges de verificación de usuarios (NONE / VERIFIED_USER / VERIFIED_COMPANY): campo en User, panel admin para cambiar estado e ícono discreto junto al nombre en perfil, cards, catálogo y alquileres
+
 ## 2026-07
 
 - **2026-07-31** - `feature/admin-notifications` - Notificaciones admin (Telegram) + Parte 2
